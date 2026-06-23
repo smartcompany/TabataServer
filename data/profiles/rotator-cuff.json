@@ -1,0 +1,83 @@
+{
+  "schemaVersion": 1,
+  "id": "rotator-cuff",
+  "title": "회전근개 재활 루틴",
+  "description": "어깨 회전근개 강화 및 마름모근 스트레칭",
+  "exercises": [
+    {
+      "id": "a1000001-0000-4000-8000-000000000001",
+      "name": "팽귄 운동",
+      "instruction": "어깨에 수건을 끼고 겨드랑이에 고정한 뒤, 팔꿈치를 좌우로 움직입니다.",
+      "order": 0,
+      "prepare": { "durationSec": 5 },
+      "phases": [
+        {
+          "id": "b1000001-0000-4000-8000-000000000001",
+          "kind": "work",
+          "label": "팔을 벌리기",
+          "durationSec": 8,
+          "order": 0
+        },
+        {
+          "id": "b1000001-0000-4000-8000-000000000002",
+          "kind": "relax",
+          "label": "팔을 오므리기",
+          "durationSec": 8,
+          "order": 1
+        }
+      ],
+      "reps": 10,
+      "sets": 5
+    },
+    {
+      "id": "a1000001-0000-4000-8000-000000000002",
+      "name": "천사 날개 운동",
+      "instruction": "벽에 등을 붙이고 팔꿈치를 위아래로 움직입니다.",
+      "order": 1,
+      "prepare": { "durationSec": 5 },
+      "phases": [
+        {
+          "id": "b1000001-0000-4000-8000-000000000003",
+          "kind": "work",
+          "label": "팔꿈치를 폈다 올리기",
+          "durationSec": 5,
+          "order": 0
+        },
+        {
+          "id": "b1000001-0000-4000-8000-000000000004",
+          "kind": "relax",
+          "label": "팔꿈치를 내리기",
+          "durationSec": 5,
+          "order": 1
+        }
+      ],
+      "reps": 5,
+      "sets": 5
+    },
+    {
+      "id": "a1000001-0000-4000-8000-000000000003",
+      "name": "마름모근 스트레칭",
+      "instruction": "반대편 어깨를 손으로 잡고 당겨 스트레칭합니다.",
+      "order": 2,
+      "prepare": { "durationSec": 5 },
+      "phases": [
+        {
+          "id": "b1000001-0000-4000-8000-000000000005",
+          "kind": "work",
+          "label": "스트레칭",
+          "durationSec": 10,
+          "order": 0
+        },
+        {
+          "id": "b1000001-0000-4000-8000-000000000006",
+          "kind": "relax",
+          "label": "이완",
+          "durationSec": 5,
+          "order": 1
+        }
+      ],
+      "reps": 5,
+      "sets": 1
+    }
+  ]
+}
