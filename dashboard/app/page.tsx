@@ -2,6 +2,8 @@
 
 import { useEffect, useMemo, useState } from 'react';
 
+import { API_BASE } from '@/lib/api-config';
+
 type ProfileSummary = {
   id: string;
   title: string;
@@ -15,7 +17,7 @@ type ProfileRow = {
   profile: Record<string, unknown>;
 };
 
-const API = process.env.NEXT_PUBLIC_API_BASE || '';
+const API = API_BASE;
 
 const emptyProfile = {
   schemaVersion: 1,
