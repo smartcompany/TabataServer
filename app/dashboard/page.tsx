@@ -2,7 +2,13 @@
 
 import { useEffect, useMemo, useState } from 'react';
 
-import { API_BASE } from '@/lib/api-config';
+import { ProfileEditor } from '@/app/dashboard/components/profile-editor';
+import {
+  createEmptyProfile,
+  parseProfile,
+  profileToJson,
+  type RoutineProfile,
+} from '@/lib/dashboard-profile-model';
 
 type ProfileSummary = {
   id: string;
@@ -17,15 +23,7 @@ type ProfileRow = {
   profile: Record<string, unknown>;
 };
 
-const API = API_BASE;
-
-const emptyProfile = {
-  schemaVersion: 1,
-  id: 'new-profile',
-  title: '새 루틴',
-  description: '',
-  exercises: [],
-};
+const API = '';
 
 export default function DashboardPage() {
   const [profiles, setProfiles] = useState<ProfileRow[]>([]);
@@ -36,7 +34,7 @@ export default function DashboardPage() {
   const [loginError, setLoginError] = useState('');
   const [loginLoading, setLoginLoading] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [editorText, setEditorText] = useState('');
+  const [draft, setDraft] = useState<RoutineProfile | null>(null);
   const [editorError, setEditorError] = useState('');
   const [saveLoading, setSaveLoading] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState(false);
@@ -71,8 +69,13 @@ export default function DashboardPage() {
   };
 
   const selectProfile = (id: string, profile: Record<string, unknown>) => {
+    const parsed = parseProfile(profile);
+    if (!parsed) {
+      setEditorError('프로필 데이터를 읽을 수 없습니다.');
+      return;
+    }
     setSelectedId(id);
-    setEditorText(JSON.stringify(profile, null, 2));
+    setDraft(parsed);
     setEditorError('');
   };
 
@@ -121,44 +124,54 @@ export default function DashboardPage() {
     setAuthenticated(false);
     setProfiles([]);
     setSelectedId(null);
-    setEditorText('');
+    setDraft(null);
   };
 
   const handleCreate = () => {
     setSelectedId('__new__');
-    setEditorText(JSON.stringify(emptyProfile, null, 2));
+    setDraft(createEmptyProfile());
     setEditorError('');
   };
 
   const handleSave = async () => {
+    if (!draft) return;
     setEditorError('');
     setSaveLoading(true);
     try {
-      let parsed: Record<string, unknown>;
-      try {
-        parsed = JSON.parse(editorText);
-      } catch {
-        setEditorError('JSON 형식이 올바르지 않습니다.');
+      const payload = profileToJson(draft);
+
+      if (!payload.id.trim()) {
+        setEditorError('프로필 ID를 입력하세요.');
         return;
       }
-
-      const id = typeof parsed.id === 'string' ? parsed.id : '';
-      if (!id) {
-        setEditorError('profile.id가 필요합니다.');
+      if (!/^[a-z0-9-]+$/.test(payload.id)) {
+        setEditorError('프로필 ID는 영문 소문자, 숫자, 하이픈만 사용할 수 있습니다.');
+        return;
+      }
+      if (!payload.title.trim()) {
+        setEditorError('루틴 이름을 입력하세요.');
+        return;
+      }
+      if (payload.exercises.some((e) => !e.name.trim())) {
+        setEditorError('모든 운동에 이름을 입력하세요.');
+        return;
+      }
+      if (payload.exercises.some((e) => e.phases.some((p) => !p.label.trim()))) {
+        setEditorError('모든 동작에 라벨을 입력하세요.');
         return;
       }
 
       const isNew = selectedId === '__new__';
       const url = isNew
         ? `${API}/api/dashboard/profiles/create`
-        : `${API}/api/dashboard/profiles/${encodeURIComponent(id)}`;
+        : `${API}/api/dashboard/profiles/${encodeURIComponent(payload.id)}`;
       const method = isNew ? 'POST' : 'PUT';
 
       const res = await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
-        body: JSON.stringify(parsed),
+        body: JSON.stringify(payload),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -166,8 +179,11 @@ export default function DashboardPage() {
         return;
       }
 
+      const saved = parseProfile(data.profile ?? payload);
       await fetchProfiles();
-      selectProfile(id, data.profile ?? parsed);
+      if (saved) {
+        selectProfile(saved.id, saved);
+      }
     } finally {
       setSaveLoading(false);
     }
@@ -189,7 +205,7 @@ export default function DashboardPage() {
         return;
       }
       setSelectedId(null);
-      setEditorText('');
+      setDraft(null);
       await fetchProfiles();
     } finally {
       setDeleteLoading(false);
@@ -257,7 +273,7 @@ export default function DashboardPage() {
       <header className="bg-white border-b border-zinc-200 px-4 py-3 flex items-center justify-between">
         <div>
           <h1 className="text-lg font-semibold text-zinc-800">운동 프로필 관리</h1>
-          <p className="text-xs text-zinc-500 mt-0.5">API: {API || '(same origin)'}</p>
+          <p className="text-xs text-zinc-500 mt-0.5">폼 편집 → JSON 자동 저장</p>
         </div>
         <button
           type="button"
@@ -318,7 +334,7 @@ export default function DashboardPage() {
             <button
               type="button"
               onClick={handleSave}
-              disabled={!selectedId || saveLoading}
+              disabled={!selectedId || !draft || saveLoading}
               className="rounded-lg bg-emerald-600 text-white px-4 py-2 text-sm font-medium hover:bg-emerald-500 disabled:opacity-50"
             >
               {saveLoading ? '저장 중...' : '저장'}
@@ -333,7 +349,7 @@ export default function DashboardPage() {
             </button>
           </div>
 
-          {!selectedId ? (
+          {!selectedId || !draft ? (
             <div className="flex-1 flex items-center justify-center text-zinc-500 text-sm">
               왼쪽에서 프로필을 선택하거나 새로 만드세요.
             </div>
@@ -342,15 +358,11 @@ export default function DashboardPage() {
               {editorError && (
                 <p className="text-sm text-red-600 whitespace-pre-wrap">{editorError}</p>
               )}
-              <textarea
-                value={editorText}
-                onChange={(event) => setEditorText(event.target.value)}
-                spellCheck={false}
-                className="flex-1 min-h-[420px] w-full rounded-lg border border-zinc-300 px-3 py-2 font-mono text-sm text-zinc-900 focus:border-zinc-500 focus:outline-none"
+              <ProfileEditor
+                profile={draft}
+                isNew={selectedId === '__new__'}
+                onChange={setDraft}
               />
-              <p className="text-xs text-zinc-500">
-                Tabata 앱과 동일한 Routine JSON 스키마(schemaVersion 1)를 사용합니다.
-              </p>
             </div>
           )}
         </section>

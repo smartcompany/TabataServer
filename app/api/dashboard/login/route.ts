@@ -21,9 +21,16 @@ export async function POST(request: NextRequest) {
     const passwordHash = (process.env.DASHBOARD_PASSWORD_HASH ?? '').trim();
 
     if (!expectedUser || !passwordHash) {
+      console.error('[dashboard login] not configured', {
+        hasUsername: Boolean(expectedUser),
+        hasPasswordHash: Boolean(passwordHash),
+      });
       return jsonResponse(
         request,
-        { error: 'Dashboard login not configured' },
+        {
+          error:
+            'Dashboard login not configured. Set DASHBOARD_USERNAME and DASHBOARD_PASSWORD_HASH in Vercel Environment Variables, then redeploy.',
+        },
         { status: 503 },
       );
     }
