@@ -4,6 +4,7 @@ import {
   createDashboardToken,
   getDashboardCookieConfig,
 } from '@/lib/dashboard-auth';
+import { verifyDashboardPassword } from '@/lib/dashboard-password';
 import { jsonResponse, optionsResponse } from '@/lib/http';
 
 export async function OPTIONS(request: NextRequest) {
@@ -13,13 +14,13 @@ export async function OPTIONS(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const username = body.username ?? '';
-    const password = body.password ?? '';
+    const username = String(body.username ?? '').trim();
+    const password = String(body.password ?? '');
 
-    const expectedUser = process.env.DASHBOARD_USERNAME || '';
-    const expectedPass = process.env.DASHBOARD_PASSWORD || '';
+    const expectedUser = (process.env.DASHBOARD_USERNAME ?? '').trim();
+    const passwordHash = (process.env.DASHBOARD_PASSWORD_HASH ?? '').trim();
 
-    if (!expectedUser || !expectedPass) {
+    if (!expectedUser || !passwordHash) {
       return jsonResponse(
         request,
         { error: 'Dashboard login not configured' },
@@ -27,7 +28,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (username !== expectedUser || password !== expectedPass) {
+    const usernameOk =
+      username.toLowerCase() === expectedUser.toLowerCase();
+    const passwordOk = verifyDashboardPassword(password, passwordHash);
+
+    if (!usernameOk || !passwordOk) {
       return jsonResponse(
         request,
         { error: 'Invalid username or password' },

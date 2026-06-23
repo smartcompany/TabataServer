@@ -11,7 +11,9 @@ export default function HomePage() {
           <code>GET /api/profiles/:id</code> — profile JSON
         </li>
       </ul>
-      <p>Admin dashboard runs from the <code>dashboard/</code> package.</p>
+      <p>
+        <a href="/dashboard">관리자 대시보드 (/dashboard)</a>
+      </p>
     </main>
   );
 }

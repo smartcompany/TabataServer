@@ -6,7 +6,8 @@
     "dev": "next dev --port 3000",
     "build": "next build",
     "start": "next start --port 3000",
-    "lint": "eslint"
+    "lint": "eslint",
+    "hash-dashboard-password": "node scripts/hash-dashboard-password.mjs"
   },
   "dependencies": {
     "@vercel/blob": "^0.26.0",
@@ -17,12 +18,14 @@
     "zod": "^3.24.2"
   },
   "devDependencies": {
+    "@tailwindcss/postcss": "^4",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "15.1.11",
+    "tailwindcss": "^4",
     "typescript": "^5"
   }
 }
