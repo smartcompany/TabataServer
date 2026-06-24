@@ -12,6 +12,34 @@ import {
 const BLOB_PREFIX = 'profiles/';
 const DATA_DIR = path.join(process.cwd(), 'data', 'profiles');
 
+/** Bundled default profiles (display order). Rotator cuff is always last. */
+const DEFAULT_PROFILE_ORDER = [
+  'tabata-basic',
+  'full-body-warmup',
+  'core-strength',
+  'lower-body-tabata',
+  'upper-body-warmup',
+] as const;
+
+const ROTATOR_CUFF_ID = 'rotator-cuff';
+
+function profileSortKey(id: string): [number, string] {
+  if (id === ROTATOR_CUFF_ID) return [2, id];
+  const index = DEFAULT_PROFILE_ORDER.indexOf(
+    id as (typeof DEFAULT_PROFILE_ORDER)[number],
+  );
+  if (index >= 0) return [0, String(index).padStart(3, '0')];
+  return [1, id];
+}
+
+function compareProfiles(a: ProfileSummary, b: ProfileSummary): number {
+  const [aTier, aKey] = profileSortKey(a.id);
+  const [bTier, bKey] = profileSortKey(b.id);
+  if (aTier !== bTier) return aTier - bTier;
+  if (aKey !== bKey) return aKey.localeCompare(bKey);
+  return a.title.localeCompare(b.title, 'ko');
+}
+
 function blobPath(id: string) {
   return `${BLOB_PREFIX}${id}.json`;
 }
@@ -103,7 +131,7 @@ export async function listProfileSummaries(): Promise<ProfileSummary[]> {
 
   return summaries
     .filter((item): item is ProfileSummary => item !== null)
-    .sort((a, b) => a.title.localeCompare(b.title, 'ko'));
+    .sort(compareProfiles);
 }
 
 export async function getProfile(id: string): Promise<RoutineProfile | null> {

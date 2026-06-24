@@ -1,0 +1,83 @@
+{
+  "schemaVersion": 1,
+  "id": "full-body-warmup",
+  "title": "전신 워밍업",
+  "description": "가벼운 전신 움직임으로 몸을 깨우는 10분 루틴",
+  "exercises": [
+    {
+      "id": "a2000002-0000-4000-8000-000000000001",
+      "name": "제자리 걷기",
+      "instruction": "무릎을 가볍게 들며 제자리에서 걷습니다.",
+      "order": 0,
+      "prepare": { "durationSec": 5 },
+      "phases": [
+        {
+          "id": "b2000002-0000-4000-8000-000000000001",
+          "kind": "work",
+          "label": "빠르게 걷기",
+          "durationSec": 30,
+          "order": 0
+        },
+        {
+          "id": "b2000002-0000-4000-8000-000000000002",
+          "kind": "relax",
+          "label": "천천히 걷기",
+          "durationSec": 15,
+          "order": 1
+        }
+      ],
+      "reps": 2,
+      "sets": 1
+    },
+    {
+      "id": "a2000002-0000-4000-8000-000000000002",
+      "name": "팔 돌리기",
+      "instruction": "양팔을 크게 원을 그리며 앞·뒤로 돌립니다.",
+      "order": 1,
+      "prepare": { "durationSec": 5 },
+      "phases": [
+        {
+          "id": "b2000002-0000-4000-8000-000000000003",
+          "kind": "work",
+          "label": "앞으로 돌리기",
+          "durationSec": 20,
+          "order": 0
+        },
+        {
+          "id": "b2000002-0000-4000-8000-000000000004",
+          "kind": "relax",
+          "label": "뒤로 돌리기",
+          "durationSec": 20,
+          "order": 1
+        }
+      ],
+      "reps": 2,
+      "sets": 1
+    },
+    {
+      "id": "a2000002-0000-4000-8000-000000000003",
+      "name": "스쿼트",
+      "instruction": "발을 어깨 너비로 벌리고 엉덩이를 뒤로 빼며 앉습니다.",
+      "order": 2,
+      "prepare": { "durationSec": 5 },
+      "phases": [
+        {
+          "id": "b2000002-0000-4000-8000-000000000005",
+          "kind": "work",
+          "label": "앉기",
+          "durationSec": 8,
+          "order": 0
+        },
+        {
+          "id": "b2000002-0000-4000-8000-000000000006",
+          "kind": "relax",
+          "label": "일어서기",
+          "durationSec": 8,
+          "order": 1
+        }
+      ],
+      "reps": 10,
+      "sets": 2
+    }
+  ]
+}

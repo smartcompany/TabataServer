@@ -1,0 +1,83 @@
+{
+  "schemaVersion": 1,
+  "id": "core-strength",
+  "title": "코어 집중",
+  "description": "복부·허리 안정화를 위한 코어 강화 루틴",
+  "exercises": [
+    {
+      "id": "a2000003-0000-4000-8000-000000000001",
+      "name": "플랭크",
+      "instruction": "팔꿈치와 발끝으로 몸을 일직선으로 유지합니다.",
+      "order": 0,
+      "prepare": { "durationSec": 5 },
+      "phases": [
+        {
+          "id": "b2000003-0000-4000-8000-000000000001",
+          "kind": "work",
+          "label": "유지",
+          "durationSec": 30,
+          "order": 0
+        },
+        {
+          "id": "b2000003-0000-4000-8000-000000000002",
+          "kind": "relax",
+          "label": "휴식",
+          "durationSec": 15,
+          "order": 1
+        }
+      ],
+      "reps": 3,
+      "sets": 1
+    },
+    {
+      "id": "a2000003-0000-4000-8000-000000000002",
+      "name": "사이드 플랭크",
+      "instruction": "옆으로 누워 몸을 일직선으로 유지합니다. 좌우를 번갈아 합니다.",
+      "order": 1,
+      "prepare": { "durationSec": 5 },
+      "phases": [
+        {
+          "id": "b2000003-0000-4000-8000-000000000003",
+          "kind": "work",
+          "label": "왼쪽 유지",
+          "durationSec": 20,
+          "order": 0
+        },
+        {
+          "id": "b2000003-0000-4000-8000-000000000004",
+          "kind": "relax",
+          "label": "오른쪽 유지",
+          "durationSec": 20,
+          "order": 1
+        }
+      ],
+      "reps": 2,
+      "sets": 2
+    },
+    {
+      "id": "a2000003-0000-4000-8000-000000000003",
+      "name": "데드버그",
+      "instruction": "누워 팔다리를 천천히 펴고 들어올립니다. 허리가 바닥에서 떨어지지 않게 합니다.",
+      "order": 2,
+      "prepare": { "durationSec": 5 },
+      "phases": [
+        {
+          "id": "b2000003-0000-4000-8000-000000000005",
+          "kind": "work",
+          "label": "반대 팔·다리 펴기",
+          "durationSec": 8,
+          "order": 0
+        },
+        {
+          "id": "b2000003-0000-4000-8000-000000000006",
+          "kind": "relax",
+          "label": "복귀",
+          "durationSec": 8,
+          "order": 1
+        }
+      ],
+      "reps": 8,
+      "sets": 2
+    }
+  ]
+}
