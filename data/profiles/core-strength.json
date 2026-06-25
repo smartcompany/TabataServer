@@ -66,17 +66,23 @@
           "kind": "work",
           "label": "반대 팔·다리 펴기",
           "durationSec": 8,
-          "order": 0
+          "order": 0,
+          "timingMode": "count",
+          "countReps": 8,
+          "secondsPerRep": 8
         },
         {
           "id": "b2000003-0000-4000-8000-000000000006",
           "kind": "relax",
           "label": "복귀",
           "durationSec": 8,
-          "order": 1
+          "order": 1,
+          "timingMode": "count",
+          "countReps": 8,
+          "secondsPerRep": 8
         }
       ],
-      "reps": 8,
+      "reps": 1,
       "sets": 2
     }
   ]

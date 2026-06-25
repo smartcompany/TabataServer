@@ -10,6 +10,10 @@ const exercisePhaseSchema = z.object({
   label: z.string().min(1),
   durationSec: z.number().int().min(1),
   order: z.number().int().min(0),
+  timingMode: z.enum(['duration', 'count']).optional(),
+  countReps: z.number().int().min(1).optional(),
+  secondsPerRep: z.number().int().min(1).optional(),
+  countOrder: z.enum(['ascending', 'descending']).optional(),
 });
 
 const exerciseSchema = z.object({

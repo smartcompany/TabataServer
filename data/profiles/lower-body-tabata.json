@@ -66,17 +66,23 @@
           "kind": "work",
           "label": "올리기",
           "durationSec": 8,
-          "order": 0
+          "order": 0,
+          "timingMode": "count",
+          "countReps": 12,
+          "secondsPerRep": 8
         },
         {
           "id": "b2000004-0000-4000-8000-000000000006",
           "kind": "relax",
           "label": "내리기",
           "durationSec": 8,
-          "order": 1
+          "order": 1,
+          "timingMode": "count",
+          "countReps": 12,
+          "secondsPerRep": 8
         }
       ],
-      "reps": 12,
+      "reps": 1,
       "sets": 2
     }
   ]

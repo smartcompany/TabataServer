@@ -16,17 +16,23 @@
           "kind": "work",
           "label": "팔을 벌리기",
           "durationSec": 8,
-          "order": 0
+          "order": 0,
+          "timingMode": "count",
+          "countReps": 10,
+          "secondsPerRep": 8
         },
         {
           "id": "b1000001-0000-4000-8000-000000000002",
           "kind": "relax",
           "label": "팔을 오므리기",
           "durationSec": 8,
-          "order": 1
+          "order": 1,
+          "timingMode": "count",
+          "countReps": 10,
+          "secondsPerRep": 8
         }
       ],
-      "reps": 10,
+      "reps": 1,
       "sets": 5
     },
     {
@@ -41,17 +47,23 @@
           "kind": "work",
           "label": "팔꿈치를 폈다 올리기",
           "durationSec": 5,
-          "order": 0
+          "order": 0,
+          "timingMode": "count",
+          "countReps": 5,
+          "secondsPerRep": 5
         },
         {
           "id": "b1000001-0000-4000-8000-000000000004",
           "kind": "relax",
           "label": "팔꿈치를 내리기",
           "durationSec": 5,
-          "order": 1
+          "order": 1,
+          "timingMode": "count",
+          "countReps": 5,
+          "secondsPerRep": 5
         }
       ],
-      "reps": 5,
+      "reps": 1,
       "sets": 5
     },
     {
