@@ -80,7 +80,7 @@ async function getBundledSummary(id: string): Promise<ProfileSummary | null> {
     // keep default
   }
 
-  return toSummary(bundled, updatedAt);
+  return toSummary(bundled, updatedAt, OFFICIAL_CATALOG_OWNER);
 }
 
 async function listBundledSummaries(): Promise<ProfileSummary[]> {
@@ -95,9 +95,13 @@ async function getBundledProfile(id: string): Promise<RoutineProfile | null> {
   return readBundledProfile(id);
 }
 
-function rowToSummary(row: { data: unknown; updated_at: string }): ProfileSummary {
+function rowToSummary(row: {
+  data: unknown;
+  updated_at: string;
+  owner_id: string;
+}): ProfileSummary {
   const profile = parseRoutineProfile(row.data);
-  return toSummary(profile, row.updated_at);
+  return toSummary(profile, row.updated_at, row.owner_id);
 }
 
 export type ProfileCatalogScope = 'official' | 'shared';
@@ -112,7 +116,7 @@ export async function listProfileSummaries(
   }
 
   let query = profilesTable(supabase)
-    .select('id, data, updated_at')
+    .select('id, data, updated_at, owner_id')
     .order('updated_at', { ascending: false });
 
   if (scope === 'official') {
@@ -128,9 +132,13 @@ export async function listProfileSummaries(
   }
 
   const summaries = (data ?? []).map(rowToSummary);
+  const filtered =
+    scope === 'official'
+      ? summaries.filter((s) => s.ownerId === OFFICIAL_CATALOG_OWNER)
+      : summaries.filter((s) => s.ownerId !== OFFICIAL_CATALOG_OWNER);
   return scope === 'official'
-    ? summaries.sort(compareProfiles)
-    : summaries.sort((a, b) => a.title.localeCompare(b.title, 'ko'));
+    ? filtered.sort(compareProfiles)
+    : filtered.sort((a, b) => a.title.localeCompare(b.title, 'ko'));
 }
 
 export async function getProfile(id: string): Promise<RoutineProfile | null> {

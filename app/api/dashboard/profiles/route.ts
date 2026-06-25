@@ -14,7 +14,7 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const summaries = await listProfileSummaries();
+    const summaries = await listProfileSummaries('official');
     const profiles = await Promise.all(
       summaries.map(async (summary) => {
         const profile = await getProfile(summary.id);

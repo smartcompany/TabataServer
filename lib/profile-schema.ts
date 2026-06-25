@@ -52,15 +52,21 @@ export type ProfileSummary = {
   description: string;
   exerciseCount: number;
   updatedAt: string;
+  ownerId: string;
 };
 
-export function toSummary(profile: RoutineProfile, updatedAt: string): ProfileSummary {
+export function toSummary(
+  profile: RoutineProfile,
+  updatedAt: string,
+  ownerId: string = OFFICIAL_CATALOG_OWNER,
+): ProfileSummary {
   return {
     id: profile.id,
     title: profile.title,
     description: profile.description,
     exerciseCount: profile.exercises.length,
     updatedAt,
+    ownerId,
   };
 }
 
