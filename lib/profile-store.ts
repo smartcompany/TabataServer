@@ -1,4 +1,3 @@
-import { list, put, del, head } from '@vercel/blob';
 import fs from 'fs/promises';
 import path from 'path';
 
@@ -8,8 +7,10 @@ import {
   type RoutineProfile,
   toSummary,
 } from './profile-schema';
+import { getSupabaseAdmin, useSupabaseProfiles } from './supabase-admin';
+import type { SupabaseClient } from '@supabase/supabase-js';
 
-const BLOB_PREFIX = 'profiles/';
+const TABLE = 'tabata_routine_profiles';
 const DATA_DIR = path.join(process.cwd(), 'data', 'profiles');
 
 /** Bundled default profiles (display order). Rotator cuff is always last. */
@@ -22,6 +23,10 @@ const DEFAULT_PROFILE_ORDER = [
 ] as const;
 
 const ROTATOR_CUFF_ID = 'rotator-cuff';
+
+function profilesTable(supabase: SupabaseClient) {
+  return supabase.from(TABLE);
+}
 
 function profileSortKey(id: string): [number, string] {
   if (id === ROTATOR_CUFF_ID) return [2, id];
@@ -38,14 +43,6 @@ function compareProfiles(a: ProfileSummary, b: ProfileSummary): number {
   if (aTier !== bTier) return aTier - bTier;
   if (aKey !== bKey) return aKey.localeCompare(bKey);
   return a.title.localeCompare(b.title, 'ko');
-}
-
-function blobPath(id: string) {
-  return `${BLOB_PREFIX}${id}.json`;
-}
-
-function useBlobStorage() {
-  return Boolean(process.env.BLOB_READ_WRITE_TOKEN);
 }
 
 async function readBundledProfile(id: string): Promise<RoutineProfile | null> {
@@ -69,41 +66,7 @@ async function listBundledIds(): Promise<string[]> {
   }
 }
 
-async function readBlobProfile(id: string): Promise<{
-  profile: RoutineProfile;
-  updatedAt: string;
-} | null> {
-  if (!useBlobStorage()) return null;
-
-  try {
-    const meta = await head(blobPath(id));
-    const response = await fetch(meta.url, { cache: 'no-store' });
-    if (!response.ok) return null;
-    const profile = parseRoutineProfile(await response.json());
-    return {
-      profile,
-      updatedAt: meta.uploadedAt.toISOString(),
-    };
-  } catch {
-    return null;
-  }
-}
-
-async function listBlobIds(): Promise<string[]> {
-  if (!useBlobStorage()) return [];
-
-  const result = await list({ prefix: BLOB_PREFIX });
-  return result.blobs
-    .map((blob) => blob.pathname.replace(BLOB_PREFIX, '').replace(/\.json$/, ''))
-    .filter(Boolean);
-}
-
-async function getProfileMeta(id: string): Promise<ProfileSummary | null> {
-  const blobbed = await readBlobProfile(id);
-  if (blobbed) {
-    return toSummary(blobbed.profile, blobbed.updatedAt);
-  }
-
+async function getBundledSummary(id: string): Promise<ProfileSummary | null> {
   const bundled = await readBundledProfile(id);
   if (!bundled) return null;
 
@@ -119,73 +82,156 @@ async function getProfileMeta(id: string): Promise<ProfileSummary | null> {
   return toSummary(bundled, updatedAt);
 }
 
-export async function listProfileSummaries(): Promise<ProfileSummary[]> {
-  const ids = new Set<string>([
-    ...(await listBundledIds()),
-    ...(await listBlobIds()),
-  ]);
-
-  const summaries = await Promise.all(
-    Array.from(ids).map((id) => getProfileMeta(id)),
-  );
-
+async function listBundledSummaries(): Promise<ProfileSummary[]> {
+  const ids = await listBundledIds();
+  const summaries = await Promise.all(ids.map((id) => getBundledSummary(id)));
   return summaries
     .filter((item): item is ProfileSummary => item !== null)
     .sort(compareProfiles);
 }
 
-export async function getProfile(id: string): Promise<RoutineProfile | null> {
-  const blobbed = await readBlobProfile(id);
-  if (blobbed) return blobbed.profile;
+async function getBundledProfile(id: string): Promise<RoutineProfile | null> {
   return readBundledProfile(id);
 }
 
-export async function saveProfile(profile: RoutineProfile): Promise<ProfileSummary> {
-  const parsed = parseRoutineProfile(profile);
-  const body = JSON.stringify(parsed, null, 2);
-  const now = new Date().toISOString();
+function rowToSummary(row: {
+  id: string;
+  title: string;
+  description: string;
+  exercise_count: number;
+  updated_at: string;
+}): ProfileSummary {
+  return {
+    id: row.id,
+    title: row.title,
+    description: row.description,
+    exerciseCount: row.exercise_count,
+    updatedAt: row.updated_at,
+  };
+}
 
-  if (useBlobStorage()) {
-    await put(blobPath(parsed.id), body, {
-      access: 'public',
-      addRandomSuffix: false,
-      contentType: 'application/json',
-    });
+/** Official catalog profiles (owner_id is null). */
+export async function listProfileSummaries(): Promise<ProfileSummary[]> {
+  const supabase = getSupabaseAdmin();
+  if (!supabase) {
+    return listBundledSummaries();
+  }
+
+  const { data, error } = await profilesTable(supabase)
+    .select('id, title, description, exercise_count, updated_at')
+    .is('owner_id', null)
+    .order('updated_at', { ascending: false });
+
+  if (error) {
+    throw new Error(`Failed to list profiles: ${error.message}`);
+  }
+
+  return (data ?? []).map(rowToSummary).sort(compareProfiles);
+}
+
+export async function getProfile(id: string): Promise<RoutineProfile | null> {
+  const supabase = getSupabaseAdmin();
+  if (!supabase) {
+    return getBundledProfile(id);
+  }
+
+  const { data, error } = await profilesTable(supabase)
+    .select('data')
+    .eq('id', id)
+    .is('owner_id', null)
+    .maybeSingle();
+
+  if (error) {
+    throw new Error(`Failed to load profile ${id}: ${error.message}`);
+  }
+  if (!data?.data) return null;
+
+  return parseRoutineProfile(data.data);
+}
+
+export async function saveProfile(
+  profile: RoutineProfile,
+  options?: { ownerId?: string | null },
+): Promise<ProfileSummary> {
+  const parsed = parseRoutineProfile(profile);
+  const now = new Date().toISOString();
+  const ownerId = options?.ownerId ?? null;
+
+  const supabase = getSupabaseAdmin();
+  if (!supabase) {
+    if (process.env.NODE_ENV === 'production') {
+      throw new Error(
+        'Profile writes require Supabase (NEXT_PUBLIC_SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)',
+      );
+    }
+
+    const body = JSON.stringify(parsed, null, 2);
+    await fs.mkdir(DATA_DIR, { recursive: true });
+    await fs.writeFile(path.join(DATA_DIR, `${parsed.id}.json`), body, 'utf8');
     return toSummary(parsed, now);
   }
 
-  if (process.env.NODE_ENV === 'production') {
-    throw new Error(
-      'Profile writes require BLOB_READ_WRITE_TOKEN on Vercel production',
-    );
+  const { error } = await profilesTable(supabase).upsert(
+    {
+      id: parsed.id,
+      title: parsed.title,
+      description: parsed.description,
+      exercise_count: parsed.exercises.length,
+      data: parsed,
+      owner_id: ownerId,
+      updated_at: now,
+    },
+    { onConflict: 'id' },
+  );
+
+  if (error) {
+    throw new Error(`Failed to save profile: ${error.message}`);
   }
 
-  await fs.mkdir(DATA_DIR, { recursive: true });
-  await fs.writeFile(path.join(DATA_DIR, `${parsed.id}.json`), body, 'utf8');
   return toSummary(parsed, now);
 }
 
+export async function profileExists(id: string): Promise<boolean> {
+  const supabase = getSupabaseAdmin();
+  if (!supabase) {
+    return (await readBundledProfile(id)) !== null;
+  }
+
+  const { data, error } = await profilesTable(supabase)
+    .select('id')
+    .eq('id', id)
+    .maybeSingle();
+
+  if (error) {
+    throw new Error(`Failed to check profile: ${error.message}`);
+  }
+  return data !== null;
+}
+
 export async function deleteProfile(id: string): Promise<boolean> {
-  if (useBlobStorage()) {
+  const supabase = getSupabaseAdmin();
+  if (!supabase) {
+    if (process.env.NODE_ENV === 'production') {
+      throw new Error('Profile deletes require Supabase in production');
+    }
+
+    const filePath = path.join(DATA_DIR, `${id}.json`);
     try {
-      await del(blobPath(id));
+      await fs.unlink(filePath);
       return true;
     } catch {
       return false;
     }
   }
 
-  if (process.env.NODE_ENV === 'production') {
-    throw new Error(
-      'Profile deletes require BLOB_READ_WRITE_TOKEN on Vercel production',
-    );
-  }
+  const { error, count } = await profilesTable(supabase)
+    .delete({ count: 'exact' })
+    .eq('id', id);
 
-  const filePath = path.join(DATA_DIR, `${id}.json`);
-  try {
-    await fs.unlink(filePath);
-    return true;
-  } catch {
-    return false;
+  if (error) {
+    throw new Error(`Failed to delete profile: ${error.message}`);
   }
+  return (count ?? 0) > 0;
 }
+
+export { useSupabaseProfiles };

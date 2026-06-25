@@ -49,7 +49,7 @@ export async function POST(request: NextRequest) {
 
     const token = createDashboardToken();
     const { name, options } = getDashboardCookieConfig();
-    const res = jsonResponse(request, { ok: true });
+    const res = jsonResponse(request, { ok: true, token });
     res.cookies.set(name, token, options);
     return res;
   } catch (error) {

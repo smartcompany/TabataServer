@@ -48,7 +48,13 @@ export function verifyDashboardToken(token: string): DashboardPayload | null {
 
 export function getDashboardToken(request: NextRequest): string | null {
   const cookie = request.cookies.get(COOKIE_NAME);
-  return cookie?.value ?? null;
+  if (cookie?.value) return cookie.value;
+
+  const auth = request.headers.get('authorization');
+  if (auth?.toLowerCase().startsWith('bearer ')) {
+    return auth.slice(7).trim();
+  }
+  return null;
 }
 
 export function verifyDashboardRequest(request: NextRequest): boolean {

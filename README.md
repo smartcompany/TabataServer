@@ -35,7 +35,10 @@ Root Directory: `server`
 - `DASHBOARD_USERNAME`
 - `DASHBOARD_PASSWORD_HASH` (`npm run hash-dashboard-password -- 'your-password'` → `salt.digest` hex, `$` 없음)
 - `DASHBOARD_SECRET` (긴 랜덤 문자열)
-- `BLOB_READ_WRITE_TOKEN` (관리자 저장/삭제에 **필수**)
+- `NEXT_PUBLIC_SUPABASE_URL`
+- `SUPABASE_SERVICE_ROLE_KEY`
+
+Supabase에 `supabase/schema.sql` 실행 후, `data/profiles/` 시드 JSON을 테이블에 넣으면 됩니다.
 
 프로덕션:
 
@@ -48,11 +51,21 @@ Root Directory: `server`
 |--------|------|------|
 | GET | `/api/profiles` | 프로필 목록 (요약) |
 | GET | `/api/profiles/:id` | 프로필 JSON 전체 |
-| POST | `/api/dashboard/login` | 관리자 로그인 |
+| POST | `/api/dashboard/login` | 관리자 로그인 (`token` 반환) |
+| POST | `/api/dashboard/profiles/upsert` | 관리자: upsert (Bearer 토큰) |
 | GET | `/api/dashboard/profiles` | 관리자: 전체 목록 |
 | PUT | `/api/dashboard/profiles/:id` | 관리자: 저장 |
 | POST | `/api/dashboard/profiles/create` | 관리자: 생성 |
 | DELETE | `/api/dashboard/profiles/:id` | 관리자: 삭제 |
+
+## 저장소 (Supabase)
+
+공식 카탈로그 루틴은 **Postgres 테이블 `tabata_routine_profiles`** (`data` JSONB 컬럼)에 저장합니다.
+
+- `owner_id IS NULL` → 공식/관리자 카탈로그 (앱 다운로드 대상)
+- `owner_id` 설정 → 향후 사용자 공유 루틴 (로그인 연동 예정)
+
+스키마: `server/supabase/schema.sql`
 
 ## Flutter 앱
 
