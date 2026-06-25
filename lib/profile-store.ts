@@ -161,7 +161,7 @@ export async function saveProfile(
   if (!supabase) {
     if (process.env.NODE_ENV === 'production') {
       throw new Error(
-        'Profile writes require Supabase (NEXT_PUBLIC_SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)',
+        'Profile writes require Supabase (SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)',
       );
     }
 

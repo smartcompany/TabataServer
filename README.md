@@ -35,7 +35,8 @@ Root Directory: `server`
 - `DASHBOARD_USERNAME`
 - `DASHBOARD_PASSWORD_HASH` (`npm run hash-dashboard-password -- 'your-password'` → `salt.digest` hex, `$` 없음)
 - `DASHBOARD_SECRET` (긴 랜덤 문자열)
-- `NEXT_PUBLIC_SUPABASE_URL`
+- `SUPABASE_URL`
+- `SUPABASE_PUBLISHABLE_KEY` (향후 클라이언트 연동용, 서버 API는 미사용)
 - `SUPABASE_SERVICE_ROLE_KEY`
 
 Supabase에 `supabase/schema.sql` 실행 후, `data/profiles/` 시드 JSON을 테이블에 넣으면 됩니다.
