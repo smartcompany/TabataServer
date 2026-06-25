@@ -1,10 +1,18 @@
 import { NextResponse } from 'next/server';
 
-import { listProfileSummaries } from '@/lib/profile-store';
+import {
+  listProfileSummaries,
+  type ProfileCatalogScope,
+} from '@/lib/profile-store';
 
-export async function GET() {
+function parseScope(value: string | null): ProfileCatalogScope {
+  return value === 'shared' ? 'shared' : 'official';
+}
+
+export async function GET(request: Request) {
   try {
-    const profiles = await listProfileSummaries();
+    const scope = parseScope(new URL(request.url).searchParams.get('scope'));
+    const profiles = await listProfileSummaries(scope);
     return NextResponse.json({ profiles });
   } catch (error) {
     console.error('[GET /api/profiles]', error);

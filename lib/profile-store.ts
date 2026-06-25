@@ -100,23 +100,37 @@ function rowToSummary(row: { data: unknown; updated_at: string }): ProfileSummar
   return toSummary(profile, row.updated_at);
 }
 
-/** Official catalog profiles uploaded by admin. */
-export async function listProfileSummaries(): Promise<ProfileSummary[]> {
+export type ProfileCatalogScope = 'official' | 'shared';
+
+/** Official catalog (admin) or shared routines from other owners. */
+export async function listProfileSummaries(
+  scope: ProfileCatalogScope = 'official',
+): Promise<ProfileSummary[]> {
   const supabase = getSupabaseAdmin();
   if (!supabase) {
-    return listBundledSummaries();
+    return scope === 'official' ? listBundledSummaries() : [];
   }
 
-  const { data, error } = await profilesTable(supabase)
+  let query = profilesTable(supabase)
     .select('id, data, updated_at')
-    .eq('owner_id', OFFICIAL_CATALOG_OWNER)
     .order('updated_at', { ascending: false });
+
+  if (scope === 'official') {
+    query = query.eq('owner_id', OFFICIAL_CATALOG_OWNER);
+  } else {
+    query = query.neq('owner_id', OFFICIAL_CATALOG_OWNER);
+  }
+
+  const { data, error } = await query;
 
   if (error) {
     throw new Error(`Failed to list profiles: ${error.message}`);
   }
 
-  return (data ?? []).map(rowToSummary).sort(compareProfiles);
+  const summaries = (data ?? []).map(rowToSummary);
+  return scope === 'official'
+    ? summaries.sort(compareProfiles)
+    : summaries.sort((a, b) => a.title.localeCompare(b.title, 'ko'));
 }
 
 export async function getProfile(id: string): Promise<RoutineProfile | null> {
@@ -128,7 +142,6 @@ export async function getProfile(id: string): Promise<RoutineProfile | null> {
   const { data, error } = await profilesTable(supabase)
     .select('data')
     .eq('id', id)
-    .eq('owner_id', OFFICIAL_CATALOG_OWNER)
     .maybeSingle();
 
   if (error) {
