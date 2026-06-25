@@ -2,11 +2,8 @@ import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 
 export type RoutineProfileRow = {
   id: string;
-  title: string;
-  description: string;
-  exercise_count: number;
   data: unknown;
-  owner_id: string | null;
+  owner_id: string;
   updated_at: string;
 };
 

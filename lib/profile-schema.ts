@@ -27,12 +27,18 @@ const exerciseSchema = z.object({
   sets: z.number().int().min(1),
 });
 
+export const OFFICIAL_CATALOG_OWNER = 'admin';
+
 export const routineProfileSchema = z.object({
   schemaVersion: z.literal(1),
   id: z
     .string()
     .min(1)
-    .regex(/^[a-z0-9-]+$/, 'id must be lowercase letters, numbers, and hyphens'),
+    .max(128)
+    .regex(
+      /^[a-z0-9-]+$/i,
+      'id must be a unique identifier (letters, numbers, hyphens)',
+    ),
   title: z.string().min(1),
   description: z.string(),
   exercises: z.array(exerciseSchema).min(1),

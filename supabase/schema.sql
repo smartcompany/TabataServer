@@ -1,14 +1,13 @@
 -- Tabata routine profiles (official catalog + future user-shared routines)
--- Run in Supabase SQL Editor before deploying the server.
+-- Run in Supabase SQL Editor (drop existing table first if re-creating).
 
 create table if not exists public.tabata_routine_profiles (
-  id text primary key check (id ~ '^[a-z0-9-]+$'),
-  title text not null,
-  description text not null default '',
-  exercise_count integer not null check (exercise_count >= 1),
+  id text primary key,
   data jsonb not null,
-  owner_id uuid references auth.users (id) on delete cascade,
-  updated_at timestamptz not null default now()
+  owner_id text not null,
+  updated_at timestamptz not null default now(),
+  constraint tabata_routine_profiles_data_id_matches
+    check ((data ->> 'id') = id)
 );
 
 create index if not exists tabata_routine_profiles_owner_id_idx

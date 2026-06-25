@@ -3,7 +3,7 @@ import { ZodError } from 'zod';
 
 import { verifyDashboardRequest } from '@/lib/dashboard-auth';
 import { jsonResponse, optionsResponse } from '@/lib/http';
-import { parseRoutineProfile } from '@/lib/profile-schema';
+import { parseRoutineProfile, OFFICIAL_CATALOG_OWNER } from '@/lib/profile-schema';
 import { deleteProfile, getProfile, saveProfile } from '@/lib/profile-store';
 
 type RouteParams = { params: Promise<{ id: string }> };
@@ -51,7 +51,9 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
       );
     }
 
-    const summary = await saveProfile(profile);
+    const summary = await saveProfile(profile, {
+      ownerId: OFFICIAL_CATALOG_OWNER,
+    });
     return jsonResponse(request, { summary, profile });
   } catch (error) {
     if (error instanceof ZodError) {

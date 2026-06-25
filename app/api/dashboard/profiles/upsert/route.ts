@@ -3,7 +3,7 @@ import { ZodError } from 'zod';
 
 import { verifyDashboardRequest } from '@/lib/dashboard-auth';
 import { jsonResponse, optionsResponse } from '@/lib/http';
-import { parseRoutineProfile } from '@/lib/profile-schema';
+import { parseRoutineProfile, OFFICIAL_CATALOG_OWNER } from '@/lib/profile-schema';
 import { profileExists, saveProfile } from '@/lib/profile-store';
 
 export async function OPTIONS(request: NextRequest) {
@@ -20,7 +20,9 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const profile = parseRoutineProfile(body);
     const existed = await profileExists(profile.id);
-    const summary = await saveProfile(profile, { ownerId: null });
+    const summary = await saveProfile(profile, {
+      ownerId: OFFICIAL_CATALOG_OWNER,
+    });
 
     return jsonResponse(
       request,

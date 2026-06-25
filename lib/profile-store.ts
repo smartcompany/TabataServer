@@ -2,6 +2,7 @@ import fs from 'fs/promises';
 import path from 'path';
 
 import {
+  OFFICIAL_CATALOG_OWNER,
   parseRoutineProfile,
   type ProfileSummary,
   type RoutineProfile,
@@ -94,23 +95,12 @@ async function getBundledProfile(id: string): Promise<RoutineProfile | null> {
   return readBundledProfile(id);
 }
 
-function rowToSummary(row: {
-  id: string;
-  title: string;
-  description: string;
-  exercise_count: number;
-  updated_at: string;
-}): ProfileSummary {
-  return {
-    id: row.id,
-    title: row.title,
-    description: row.description,
-    exerciseCount: row.exercise_count,
-    updatedAt: row.updated_at,
-  };
+function rowToSummary(row: { data: unknown; updated_at: string }): ProfileSummary {
+  const profile = parseRoutineProfile(row.data);
+  return toSummary(profile, row.updated_at);
 }
 
-/** Official catalog profiles (owner_id is null). */
+/** Official catalog profiles uploaded by admin. */
 export async function listProfileSummaries(): Promise<ProfileSummary[]> {
   const supabase = getSupabaseAdmin();
   if (!supabase) {
@@ -118,8 +108,8 @@ export async function listProfileSummaries(): Promise<ProfileSummary[]> {
   }
 
   const { data, error } = await profilesTable(supabase)
-    .select('id, title, description, exercise_count, updated_at')
-    .is('owner_id', null)
+    .select('id, data, updated_at')
+    .eq('owner_id', OFFICIAL_CATALOG_OWNER)
     .order('updated_at', { ascending: false });
 
   if (error) {
@@ -138,7 +128,7 @@ export async function getProfile(id: string): Promise<RoutineProfile | null> {
   const { data, error } = await profilesTable(supabase)
     .select('data')
     .eq('id', id)
-    .is('owner_id', null)
+    .eq('owner_id', OFFICIAL_CATALOG_OWNER)
     .maybeSingle();
 
   if (error) {
@@ -151,11 +141,14 @@ export async function getProfile(id: string): Promise<RoutineProfile | null> {
 
 export async function saveProfile(
   profile: RoutineProfile,
-  options?: { ownerId?: string | null },
+  options: { ownerId: string },
 ): Promise<ProfileSummary> {
   const parsed = parseRoutineProfile(profile);
   const now = new Date().toISOString();
-  const ownerId = options?.ownerId ?? null;
+  const ownerId = options.ownerId.trim();
+  if (!ownerId) {
+    throw new Error('ownerId is required');
+  }
 
   const supabase = getSupabaseAdmin();
   if (!supabase) {
@@ -174,9 +167,6 @@ export async function saveProfile(
   const { error } = await profilesTable(supabase).upsert(
     {
       id: parsed.id,
-      title: parsed.title,
-      description: parsed.description,
-      exercise_count: parsed.exercises.length,
       data: parsed,
       owner_id: ownerId,
       updated_at: now,
