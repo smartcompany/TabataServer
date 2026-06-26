@@ -40,29 +40,16 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { data: existingUser, error: findError } = await supabase
-      .from('tabata_users')
-      .select('*')
-      .eq('user_id', uid)
-      .single();
-
-    if (!findError && existingUser) {
-      const { auth } = getFirebaseAdmin();
-      const customToken = await auth.createCustomToken(uid, {
-        provider: 'kakao',
-        kakaoId,
-      });
-
-      return NextResponse.json({
-        uid,
-        kakao_id: kakaoId,
-        custom_token: customToken,
-      });
-    }
+    const { auth } = getFirebaseAdmin();
+    const customToken = await auth.createCustomToken(uid, {
+      provider: 'kakao',
+      kakaoId,
+    });
 
     return NextResponse.json({
       uid,
       kakao_id: kakaoId,
+      custom_token: customToken,
     });
   } catch (error) {
     console.error('Kakao Firebase login error:', error);
