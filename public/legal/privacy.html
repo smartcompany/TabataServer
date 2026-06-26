@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>개인정보 처리방침 | 모두의 타바타</title>
+  <style>
+    :root{color-scheme:light dark}
+    body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,"Apple SD Gothic Neo","Noto Sans KR",sans-serif;line-height:1.6;margin:0;padding:0;color:#222;background:#fff}
+    header{position:sticky;top:0;background:#fff;border-bottom:1px solid #eee;padding:12px 16px;display:flex;gap:12px;align-items:center;flex-wrap:wrap;z-index:10}
+    header a{text-decoration:none;color:#555;padding:6px 10px;border-radius:8px;border:1px solid #ddd;font-size:14px}
+    header a.active{background:#f3f4f6;font-weight:600}
+    main{max-width:880px;margin:24px auto;padding:0 16px 64px}
+    h1{font-size:1.8rem;margin-top:0}
+    h2{margin-top:2rem}
+    ul{padding-left:1.2rem}
+    footer{border-top:1px solid #eee;margin-top:48px;padding-top:16px;color:#666}
+    .note{background:#f8fafc;border:1px solid #e5e7eb;padding:10px 12px;border-radius:8px}
+  </style>
+</head>
+<body>
+  <header>
+    <strong>모두의 타바타</strong>
+    <div style="flex:1"></div>
+    <a href="child-safety.html">아동 안전</a>
+    <a href="#ko" id="btn-ko" class="active">한국어</a>
+    <a href="#en" id="btn-en">English</a>
+  </header>
+  <main>
+    <section id="ko" aria-label="한국어">
+      <h1>개인정보 처리방침</h1>
+      <p><strong>모두의 타바타</strong>(이하 "앱", "당사")는 이용자의 개인정보를 소중히 하며, 관련 법령을 준수합니다.</p>
+      <div class="note"><strong>요약:</strong> 로그인 식별자, 닉네임, 업로드한 운동 루틴(텍스트·사진·동영상 링크) 등 서비스 제공에 필요한 정보를 처리합니다. 문자(SMS)는 수집하지 않습니다.</div>
+      <h2>1. 수집 항목 및 이용 목적</h2>
+      <ul>
+        <li><strong>계정</strong>: Firebase UID, 로그인 제공자가 전달하는 이메일·표시 이름(있는 경우) — 인증 및 회원 식별</li>
+        <li><strong>프로필</strong>: 닉네임 — 공유 루틴 작성자 표시</li>
+        <li><strong>서비스 이용</strong>: 기기에 저장한 루틴, 서버에 업로드한 루틴(제목·설명·운동 구성·첨부 이미지 URL) — 타이머·루틴 공유 기능 제공</li>
+        <li><strong>기기·진단</strong>: 앱 오류 정보(포함 시) — 안정성 개선</li>
+      </ul>
+      <h2>2. 보관 기간</h2>
+      <ul>
+        <li>회원 탈퇴 또는 목적 달성 시 지체 없이 삭제합니다.</li>
+        <li>법령상 보관 의무가 있는 경우 해당 기간 보관합니다.</li>
+        <li>공유된 루틴은 운영·분쟁 대응에 필요한 기간 보관될 수 있습니다.</li>
+      </ul>
+      <h2>3. 제3자 제공·위탁</h2>
+      <ul>
+        <li><strong>Firebase / Google</strong>: 인증</li>
+        <li><strong>카카오·Google·Apple</strong>: 소셜 로그인</li>
+        <li><strong>Supabase</strong>: 프로필·루틴·이미지 저장</li>
+        <li><strong>Google Mobile Ads</strong>: 광고(앱에 포함된 경우)</li>
+      </ul>
+      <p>당사는 이용자 개인정보를 판매하지 않습니다.</p>
+      <h2>4. 이용자 권리·계정 삭제</h2>
+      <p>열람·정정·삭제는 앱 스토어 개발자 연락처로 요청할 수 있습니다. 로그아웃 시 기기에 저장된 로그인 세션이 해제됩니다.</p>
+      <h2>5. 아동</h2>
+      <p>만 13세 미만(또는 관할 최소 연령) 아동의 정보를 고의로 수집하지 않습니다.</p>
+      <footer>시행일: 2026-06-26 · 버전 1.0</footer>
+    </section>
+    <section id="en" aria-label="English" style="display:none">
+      <h1>Privacy Policy</h1>
+      <p><strong>Tabata Timer</strong> ("the App", "we") respects your privacy.</p>
+      <div class="note"><strong>Summary:</strong> Sign-in identifiers, nickname, and uploaded workout routines (text, photos, video links) are processed to run the service. No SMS collection.</div>
+      <h2>1. Data collected</h2>
+      <ul>
+        <li><strong>Account</strong>: Firebase UID, email/display name from provider</li>
+        <li><strong>Profile</strong>: Nickname</li>
+        <li><strong>Service</strong>: Local and uploaded routines, image URLs</li>
+      </ul>
+      <h2>2. Retention &amp; deletion</h2>
+      <p>Deleted when you delete your account or the purpose is fulfilled, subject to law.</p>
+      <h2>3. Processors</h2>
+      <p>Firebase/Google, Kakao, Apple, Supabase, Google Mobile Ads (if included).</p>
+      <h2>4. Children</h2>
+      <p>No knowing collection from children under 13.</p>
+      <footer>Effective: 2026-06-26 · v1.0</footer>
+    </section>
+  </main>
+  <script>
+    function updateLang(){var h=location.hash||"#ko";document.querySelectorAll('header a[href^="#"]').forEach(function(a){a.classList.remove("active")});if(h.indexOf("#en")===0){document.getElementById("btn-en").classList.add("active")}else{document.getElementById("btn-ko").classList.add("active")}document.getElementById("ko").style.display=h.indexOf("#en")===0?"none":"block";document.getElementById("en").style.display=h.indexOf("#en")===0?"block":"none"}
+    window.addEventListener("hashchange",updateLang);updateLang();
+  </script>
+</body>
+</html>
