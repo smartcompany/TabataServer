@@ -44,6 +44,17 @@ export async function GET(request: NextRequest) {
 
     return userResponse(data);
   } catch (error) {
+    const message = error instanceof Error ? error.message : '';
+    if (
+      message.includes('FIREBASE_SERVICE_ACCOUNT_KEY') ||
+      message.includes('credential')
+    ) {
+      console.error('Firebase admin not configured:', error);
+      return NextResponse.json(
+        { error: 'Firebase admin not configured on server' },
+        { status: 503 },
+      );
+    }
     console.error('Get user error:', error);
     return NextResponse.json({ error: 'Failed to get user' }, { status: 500 });
   }
@@ -150,6 +161,17 @@ export async function PUT(request: NextRequest) {
 
     return userResponse(data);
   } catch (error) {
+    const message = error instanceof Error ? error.message : '';
+    if (
+      message.includes('FIREBASE_SERVICE_ACCOUNT_KEY') ||
+      message.includes('credential')
+    ) {
+      console.error('Firebase admin not configured:', error);
+      return NextResponse.json(
+        { error: 'Firebase admin not configured on server' },
+        { status: 503 },
+      );
+    }
     console.error('Update user error:', error);
     return NextResponse.json({ error: 'Failed to update user' }, { status: 500 });
   }

@@ -16,6 +16,10 @@ export async function verifyToken(
       return null;
     }
 
+    if (!process.env.FIREBASE_SERVICE_ACCOUNT_KEY) {
+      throw new Error('FIREBASE_SERVICE_ACCOUNT_KEY_NOT_SET');
+    }
+
     const idToken = authHeader.substring(7);
     const { auth } = getFirebaseAdmin();
     const decodedToken = await auth.verifyIdToken(idToken);
@@ -26,6 +30,13 @@ export async function verifyToken(
       email: decodedToken.email,
     };
   } catch (error) {
+    if (
+      error instanceof Error &&
+      (error.message === 'FIREBASE_SERVICE_ACCOUNT_KEY_NOT_SET' ||
+        error.message.includes('FIREBASE_SERVICE_ACCOUNT_KEY'))
+    ) {
+      throw error;
+    }
     console.error('Token verification error:', error);
     return null;
   }
