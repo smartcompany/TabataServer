@@ -160,6 +160,53 @@ export async function getProfile(id: string): Promise<RoutineProfile | null> {
   return parseRoutineProfile(data.data);
 }
 
+export async function getProfileOwnerId(id: string): Promise<string | null> {
+  const supabase = getSupabaseAdmin();
+  if (!supabase) {
+    const bundled = await getBundledProfile(id);
+    return bundled ? OFFICIAL_CATALOG_OWNER : null;
+  }
+
+  const { data, error } = await profilesTable(supabase)
+    .select('owner_id')
+    .eq('id', id)
+    .maybeSingle();
+
+  if (error) {
+    throw new Error(`Failed to load profile owner ${id}: ${error.message}`);
+  }
+  return data?.owner_id ?? null;
+}
+
+export async function listProfilesForOwner(
+  ownerId: string,
+): Promise<Array<{ summary: ProfileSummary; profile: RoutineProfile }>> {
+  const supabase = getSupabaseAdmin();
+  if (!supabase) {
+    return [];
+  }
+
+  const { data, error } = await profilesTable(supabase)
+    .select('id, data, updated_at, owner_id')
+    .eq('owner_id', ownerId)
+    .order('updated_at', { ascending: false });
+
+  if (error) {
+    throw new Error(`Failed to list profiles for owner: ${error.message}`);
+  }
+
+  const profiles: Array<{ summary: ProfileSummary; profile: RoutineProfile }> =
+    [];
+  for (const row of data ?? []) {
+    const profile = parseRoutineProfile(row.data);
+    profiles.push({
+      summary: rowToSummary(row),
+      profile,
+    });
+  }
+  return profiles;
+}
+
 export async function saveProfile(
   profile: RoutineProfile,
   options: { ownerId: string },
@@ -182,7 +229,7 @@ export async function saveProfile(
     const body = JSON.stringify(parsed, null, 2);
     await fs.mkdir(DATA_DIR, { recursive: true });
     await fs.writeFile(path.join(DATA_DIR, `${parsed.id}.json`), body, 'utf8');
-    return toSummary(parsed, now);
+    return toSummary(parsed, now, ownerId);
   }
 
   const { error } = await profilesTable(supabase).upsert(
@@ -199,7 +246,7 @@ export async function saveProfile(
     throw new Error(`Failed to save profile: ${error.message}`);
   }
 
-  return toSummary(parsed, now);
+  return toSummary(parsed, now, ownerId);
 }
 
 export async function profileExists(id: string): Promise<boolean> {
@@ -238,6 +285,26 @@ export async function deleteProfile(id: string): Promise<boolean> {
   const { error, count } = await profilesTable(supabase)
     .delete({ count: 'exact' })
     .eq('id', id);
+
+  if (error) {
+    throw new Error(`Failed to delete profile: ${error.message}`);
+  }
+  return (count ?? 0) > 0;
+}
+
+export async function deleteProfileForOwner(
+  id: string,
+  ownerId: string,
+): Promise<boolean> {
+  const supabase = getSupabaseAdmin();
+  if (!supabase) {
+    return false;
+  }
+
+  const { error, count } = await profilesTable(supabase)
+    .delete({ count: 'exact' })
+    .eq('id', id)
+    .eq('owner_id', ownerId);
 
   if (error) {
     throw new Error(`Failed to delete profile: ${error.message}`);
