@@ -12,6 +12,33 @@ const ALLOWED_TYPES = new Set([
   'image/gif',
 ]);
 
+const EXTENSION_CONTENT_TYPES: Record<string, string> = {
+  jpg: 'image/jpeg',
+  jpeg: 'image/jpeg',
+  png: 'image/png',
+  webp: 'image/webp',
+  gif: 'image/gif',
+};
+
+function resolveImageContentType(file: File): string | null {
+  const declared = file.type?.toLowerCase() ?? '';
+  if (ALLOWED_TYPES.has(declared)) {
+    return declared;
+  }
+
+  const ext = file.name?.split('.').pop()?.toLowerCase() ?? '';
+  const fromExt = EXTENSION_CONTENT_TYPES[ext];
+  if (fromExt) {
+    return fromExt;
+  }
+
+  if (!declared || declared === 'application/octet-stream') {
+    return 'image/jpeg';
+  }
+
+  return null;
+}
+
 export async function OPTIONS(request: NextRequest) {
   return optionsResponse(request);
 }
@@ -47,8 +74,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const contentType = fileObj.type || 'image/jpeg';
-    if (!ALLOWED_TYPES.has(contentType)) {
+    const contentType = resolveImageContentType(fileObj);
+    if (!contentType) {
       return jsonResponse(
         request,
         { error: 'Unsupported image type' },
@@ -57,7 +84,10 @@ export async function POST(request: NextRequest) {
     }
 
     const bucket = process.env.STORAGE_BUCKET?.trim() || 'tabata-server';
-    const ext = fileObj.name?.split('.').pop() || contentType.split('/')[1] || 'jpg';
+    const ext =
+      fileObj.name?.split('.').pop()?.toLowerCase() ||
+      contentType.split('/')[1] ||
+      'jpg';
     const routineIdRaw = formData.get('routineId');
     const routineId =
       typeof routineIdRaw === 'string'
