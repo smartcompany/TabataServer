@@ -58,7 +58,14 @@ export async function POST(request: NextRequest) {
 
     const bucket = process.env.STORAGE_BUCKET?.trim() || 'tabata-server';
     const ext = fileObj.name?.split('.').pop() || contentType.split('/')[1] || 'jpg';
-    const filePath = `routine-images/${authUser.firebaseUid}/${Date.now()}.${ext}`;
+    const routineIdRaw = formData.get('routineId');
+    const routineId =
+      typeof routineIdRaw === 'string'
+        ? routineIdRaw.trim().replace(/[^a-zA-Z0-9_-]/g, '')
+        : '';
+    const filePath = routineId
+      ? `routine-images/${authUser.firebaseUid}/${routineId}/${crypto.randomUUID()}.${ext}`
+      : `routine-images/${authUser.firebaseUid}/${Date.now()}.${ext}`;
 
     const { error } = await supabase.storage.from(bucket).upload(filePath, fileObj, {
       contentType,
