@@ -1,0 +1,12 @@
+{
+  "ios_ad": "initial_ad",
+  "android_ad": "initial_ad",
+  "ref": {
+    "ios": {
+      "initial_ad": "ca-app-pub-5520596727761259/1323317386"
+    },
+    "android": {
+      "initial_ad": "ca-app-pub-5520596727761259/3013205947"
+    }
+  }
+}

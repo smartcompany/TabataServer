@@ -25,3 +25,24 @@ create policy "tabata_routine_profiles_deny_anon"
   to anon, authenticated
   using (false)
   with check (false);
+
+-- App users (Firebase / Kakao login)
+create table if not exists tabata_users (
+  user_id text primary key,
+  full_name text not null default '',
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  is_active boolean not null default true
+);
+
+create index if not exists tabata_users_updated_at_idx
+  on tabata_users (updated_at desc);
+
+alter table tabata_users enable row level security;
+
+create policy "tabata_users_deny_anon"
+  on tabata_users
+  for all
+  to anon, authenticated
+  using (false)
+  with check (false);
