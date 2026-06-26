@@ -1,0 +1,87 @@
+import { NextRequest } from 'next/server';
+
+import { jsonResponse, optionsResponse } from '@/lib/http';
+import { verifyToken } from '@/lib/middleware/auth';
+import { getSupabaseAdmin } from '@/lib/supabase-admin';
+
+const MAX_BYTES = 8 * 1024 * 1024;
+const ALLOWED_TYPES = new Set([
+  'image/jpeg',
+  'image/png',
+  'image/webp',
+  'image/gif',
+]);
+
+export async function OPTIONS(request: NextRequest) {
+  return optionsResponse(request);
+}
+
+export async function POST(request: NextRequest) {
+  const authUser = await verifyToken(request);
+  if (!authUser) {
+    return jsonResponse(request, { error: 'Unauthorized' }, { status: 401 });
+  }
+
+  const supabase = getSupabaseAdmin();
+  if (!supabase) {
+    return jsonResponse(
+      request,
+      { error: 'Storage not configured' },
+      { status: 503 },
+    );
+  }
+
+  try {
+    const formData = await request.formData();
+    const file = formData.get('file');
+    if (!file || typeof file === 'string') {
+      return jsonResponse(request, { error: 'File is required' }, { status: 400 });
+    }
+
+    const fileObj = file as File;
+    if (fileObj.size > MAX_BYTES) {
+      return jsonResponse(
+        request,
+        { error: 'Image must be 8MB or smaller' },
+        { status: 400 },
+      );
+    }
+
+    const contentType = fileObj.type || 'image/jpeg';
+    if (!ALLOWED_TYPES.has(contentType)) {
+      return jsonResponse(
+        request,
+        { error: 'Unsupported image type' },
+        { status: 400 },
+      );
+    }
+
+    const bucket = process.env.STORAGE_BUCKET?.trim() || 'tabata-server';
+    const ext = fileObj.name?.split('.').pop() || contentType.split('/')[1] || 'jpg';
+    const filePath = `routine-images/${authUser.firebaseUid}/${Date.now()}.${ext}`;
+
+    const { error } = await supabase.storage.from(bucket).upload(filePath, fileObj, {
+      contentType,
+      upsert: false,
+    });
+
+    if (error) {
+      console.error('[POST /api/user/routine-images]', error);
+      return jsonResponse(
+        request,
+        { error: 'Failed to upload image' },
+        { status: 500 },
+      );
+    }
+
+    const { data } = supabase.storage.from(bucket).getPublicUrl(filePath);
+    return jsonResponse(request, { url: data.publicUrl }, { status: 201 });
+  } catch (error) {
+    console.error('[POST /api/user/routine-images]', error);
+    return jsonResponse(
+      request,
+      { error: 'Failed to upload image' },
+      { status: 500 },
+    );
+  }
+}

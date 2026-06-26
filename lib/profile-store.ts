@@ -104,6 +104,48 @@ function rowToSummary(row: {
   return toSummary(profile, row.updated_at, row.owner_id);
 }
 
+async function resolveOwnerNames(
+  supabase: NonNullable<ReturnType<typeof getSupabaseAdmin>>,
+  ownerIds: string[],
+): Promise<Map<string, string>> {
+  const userIds = [
+    ...new Set(
+      ownerIds.filter((id) => id && id !== OFFICIAL_CATALOG_OWNER),
+    ),
+  ];
+  if (userIds.length === 0) return new Map();
+
+  const { data, error } = await supabase
+    .from('tabata_users')
+    .select('user_id, full_name')
+    .in('user_id', userIds);
+
+  if (error) {
+    console.error('Failed to resolve owner names:', error.message);
+    return new Map();
+  }
+
+  const names = new Map<string, string>();
+  for (const row of data ?? []) {
+    const name = (row.full_name as string | undefined)?.trim();
+    if (name) {
+      names.set(row.user_id as string, name);
+    }
+  }
+  return names;
+}
+
+function attachOwnerNames(
+  summaries: ProfileSummary[],
+  names: Map<string, string>,
+): ProfileSummary[] {
+  return summaries.map((summary) => {
+    const ownerName = names.get(summary.ownerId);
+    if (!ownerName) return summary;
+    return { ...summary, ownerName };
+  });
+}
+
 export type ProfileCatalogScope = 'official' | 'shared';
 
 /** Official catalog (admin) or shared routines from other owners. */
@@ -136,9 +178,16 @@ export async function listProfileSummaries(
     scope === 'official'
       ? summaries.filter((s) => s.ownerId === OFFICIAL_CATALOG_OWNER)
       : summaries.filter((s) => s.ownerId !== OFFICIAL_CATALOG_OWNER);
-  return scope === 'official'
-    ? filtered.sort(compareProfiles)
-    : filtered.sort((a, b) => a.title.localeCompare(b.title, 'ko'));
+  const sorted =
+    scope === 'official'
+      ? filtered.sort(compareProfiles)
+      : filtered.sort((a, b) => a.title.localeCompare(b.title, 'ko'));
+
+  const ownerNames = await resolveOwnerNames(
+    supabase,
+    sorted.map((summary) => summary.ownerId),
+  );
+  return attachOwnerNames(sorted, ownerNames);
 }
 
 export async function getProfile(id: string): Promise<RoutineProfile | null> {

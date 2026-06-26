@@ -1,5 +1,10 @@
 import { z } from 'zod';
 
+import {
+  descriptionBlocksSchema,
+  descriptionPlainText,
+} from './description-blocks';
+
 const timedPhaseSchema = z.object({
   durationSec: z.number().int().min(0),
 });
@@ -41,6 +46,7 @@ export const routineProfileSchema = z.object({
     ),
   title: z.string().min(1),
   description: z.string(),
+  descriptionBlocks: descriptionBlocksSchema.optional(),
   exercises: z.array(exerciseSchema).min(1),
 });
 
@@ -53,6 +59,7 @@ export type ProfileSummary = {
   exerciseCount: number;
   updatedAt: string;
   ownerId: string;
+  ownerName?: string;
 };
 
 export function toSummary(
@@ -63,13 +70,27 @@ export function toSummary(
   return {
     id: profile.id,
     title: profile.title,
-    description: profile.description,
+    description: descriptionPlainText(
+      profile.description,
+      profile.descriptionBlocks,
+    ),
     exerciseCount: profile.exercises.length,
     updatedAt,
     ownerId,
   };
 }
 
+export function normalizeRoutineProfile(raw: unknown): RoutineProfile {
+  const parsed = routineProfileSchema.parse(raw);
+  const blocks = parsed.descriptionBlocks ?? [];
+  const description = descriptionPlainText(parsed.description, blocks);
+  return {
+    ...parsed,
+    description,
+    descriptionBlocks: blocks.length > 0 ? blocks : undefined,
+  };
+}
+
 export function parseRoutineProfile(raw: unknown): RoutineProfile {
-  return routineProfileSchema.parse(raw);
+  return normalizeRoutineProfile(raw);
 }

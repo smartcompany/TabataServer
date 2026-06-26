@@ -1,5 +1,4 @@
--- Tabata routine profiles (official catalog + future user-shared routines)
--- Run in Supabase SQL Editor (drop existing table first if re-creating).
+-- Tabata Supabase schema (idempotent — safe to re-run in SQL Editor)
 
 create table if not exists tabata_routine_profiles (
   id text primary key,
@@ -19,6 +18,7 @@ create index if not exists tabata_routine_profiles_updated_at_idx
 alter table tabata_routine_profiles enable row level security;
 
 -- No client-side access; the Next.js server uses the service role key.
+drop policy if exists "tabata_routine_profiles_deny_anon" on tabata_routine_profiles;
 create policy "tabata_routine_profiles_deny_anon"
   on tabata_routine_profiles
   for all
@@ -40,6 +40,7 @@ create index if not exists tabata_users_updated_at_idx
 
 alter table tabata_users enable row level security;
 
+drop policy if exists "tabata_users_deny_anon" on tabata_users;
 create policy "tabata_users_deny_anon"
   on tabata_users
   for all
