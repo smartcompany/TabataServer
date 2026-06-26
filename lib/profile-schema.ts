@@ -25,6 +25,7 @@ const exerciseSchema = z.object({
   id: z.string().min(1),
   name: z.string().min(1),
   instruction: z.string(),
+  instructionBlocks: descriptionBlocksSchema.optional(),
   order: z.number().int().min(0),
   prepare: timedPhaseSchema,
   phases: z.array(exercisePhaseSchema).min(1),
@@ -84,10 +85,24 @@ export function normalizeRoutineProfile(raw: unknown): RoutineProfile {
   const parsed = routineProfileSchema.parse(raw);
   const blocks = parsed.descriptionBlocks ?? [];
   const description = descriptionPlainText(parsed.description, blocks);
+  const exercises = parsed.exercises.map((exercise) => {
+    const instructionBlocks = exercise.instructionBlocks ?? [];
+    const instruction = descriptionPlainText(
+      exercise.instruction,
+      instructionBlocks,
+    );
+    return {
+      ...exercise,
+      instruction,
+      instructionBlocks:
+        instructionBlocks.length > 0 ? instructionBlocks : undefined,
+    };
+  });
   return {
     ...parsed,
     description,
     descriptionBlocks: blocks.length > 0 ? blocks : undefined,
+    exercises,
   };
 }
 
