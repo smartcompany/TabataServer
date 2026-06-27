@@ -1,5 +1,6 @@
 {
   "schemaVersion": 1,
+  "contentLanguage": "ko",
   "id": "full-body-warmup",
   "title": "전신 워밍업",
   "description": "가벼운 전신 움직임으로 몸을 깨우는 10분 루틴",
@@ -9,7 +10,9 @@
       "name": "제자리 걷기",
       "instruction": "무릎을 가볍게 들며 제자리에서 걷습니다.",
       "order": 0,
-      "prepare": { "durationSec": 5 },
+      "prepare": {
+        "durationSec": 5
+      },
       "phases": [
         {
           "id": "b2000002-0000-4000-8000-000000000001",
@@ -34,7 +37,9 @@
       "name": "팔 돌리기",
       "instruction": "양팔을 크게 원을 그리며 앞·뒤로 돌립니다.",
       "order": 1,
-      "prepare": { "durationSec": 5 },
+      "prepare": {
+        "durationSec": 5
+      },
       "phases": [
         {
           "id": "b2000002-0000-4000-8000-000000000003",
@@ -59,7 +64,9 @@
       "name": "스쿼트",
       "instruction": "발을 어깨 너비로 벌리고 엉덩이를 뒤로 빼며 앉습니다.",
       "order": 2,
-      "prepare": { "durationSec": 5 },
+      "prepare": {
+        "durationSec": 5
+      },
       "phases": [
         {
           "id": "b2000002-0000-4000-8000-000000000005",

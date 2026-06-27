@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getFirebaseAdmin } from '@/lib/firebase/admin';
 import { verifyToken } from '@/lib/middleware/auth';
 import { getSupabaseAdmin } from '@/lib/supabase-admin';
+import { deleteUserAccount } from '@/lib/user-account';
 
 function userResponse(data: Record<string, unknown>) {
   return NextResponse.json({
@@ -174,5 +175,42 @@ export async function PUT(request: NextRequest) {
     }
     console.error('Update user error:', error);
     return NextResponse.json({ error: 'Failed to update user' }, { status: 500 });
+  }
+}
+
+export async function DELETE(request: NextRequest) {
+  try {
+    const authUser = await verifyToken(request);
+    if (!authUser) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const supabase = getSupabaseAdmin();
+    if (!supabase) {
+      return NextResponse.json(
+        { error: 'Database not configured' },
+        { status: 503 },
+      );
+    }
+
+    const result = await deleteUserAccount(authUser.firebaseUid);
+    return NextResponse.json({ ok: true, ...result });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : '';
+    if (
+      message.includes('FIREBASE_SERVICE_ACCOUNT_KEY') ||
+      message.includes('credential')
+    ) {
+      console.error('Firebase admin not configured:', error);
+      return NextResponse.json(
+        { error: 'Firebase admin not configured on server' },
+        { status: 503 },
+      );
+    }
+    console.error('Delete user error:', error);
+    return NextResponse.json(
+      { error: message || 'Failed to delete account' },
+      { status: 500 },
+    );
   }
 }

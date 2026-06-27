@@ -1,5 +1,6 @@
 {
   "schemaVersion": 1,
+  "contentLanguage": "ko",
   "id": "upper-body-warmup",
   "title": "상체 워밍업",
   "description": "어깨·팔·가슴을 풀어 주는 상체 준비 운동",
@@ -9,7 +10,9 @@
       "name": "팔꿈치 굽혀 펴기",
       "instruction": "무릎을 꿇거나 서서 팔꿈치를 굽혔다 펴며 가슴·삼두근을 웜업합니다.",
       "order": 0,
-      "prepare": { "durationSec": 5 },
+      "prepare": {
+        "durationSec": 5
+      },
       "phases": [
         {
           "id": "b2000005-0000-4000-8000-000000000001",
@@ -40,7 +43,9 @@
       "name": "숄더 프레스",
       "instruction": "가벼운 무게 또는 맨몸으로 어깨 높이에서 팔을 위로 밀어 올립니다.",
       "order": 1,
-      "prepare": { "durationSec": 5 },
+      "prepare": {
+        "durationSec": 5
+      },
       "phases": [
         {
           "id": "b2000005-0000-4000-8000-000000000003",
@@ -71,7 +76,9 @@
       "name": "가슴 스트레칭",
       "instruction": "벽이나 문틀에 손을 대고 가슴을 열어 스트레칭합니다.",
       "order": 2,
-      "prepare": { "durationSec": 5 },
+      "prepare": {
+        "durationSec": 5
+      },
       "phases": [
         {
           "id": "b2000005-0000-4000-8000-000000000005",

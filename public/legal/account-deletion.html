@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>회원 탈퇴 | 모두의 타바타</title>
+  <style>
+    :root{color-scheme:light dark}
+    body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Apple SD Gothic Neo",sans-serif;line-height:1.65;margin:0;color:#1a1a1a;background:#fafafa}
+    header{position:sticky;top:0;background:#fafafa;border-bottom:1px solid #e5e5e5;padding:12px 16px;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+    header a{text-decoration:none;color:#444;padding:6px 10px;border-radius:8px;border:1px solid #ccc;font-size:14px}
+    header a.active{background:#eee;font-weight:600}
+    main{max-width:720px;margin:0 auto;padding:20px 16px 48px}
+    h1{font-size:1.35rem;margin:0 0 12px}
+    h2{font-size:1.05rem;margin:28px 0 10px}
+    ol,ul{padding-left:1.25rem}
+    .note{background:#fff8e1;border:1px solid #ffe082;padding:12px 14px;border-radius:10px;margin:16px 0;font-size:14px}
+    footer{margin-top:36px;padding-top:16px;border-top:1px solid #e5e5e5;font-size:12px;color:#666}
+    a{color:#c62828}
+  </style>
+</head>
+<body>
+  <header>
+    <strong>모두의 타바타</strong>
+    <div style="flex:1"></div>
+    <a href="privacy.html">개인정보</a>
+    <a href="#ko" id="btn-ko" class="active">한국어</a>
+    <a href="#en" id="btn-en">English</a>
+  </header>
+  <main>
+    <section id="ko">
+      <h1>회원 탈퇴 (계정 및 데이터 삭제)</h1>
+      <p><strong>모두의 타바타</strong> 앱에서 계정과 서버에 저장된 데이터를 삭제(탈퇴)하는 방법입니다.</p>
+
+      <h2>앱에서 탈퇴하기 (권장)</h2>
+      <ol>
+        <li>앱을 실행합니다.</li>
+        <li>우측 상단 <strong>설정</strong>을 엽니다.</li>
+        <li><strong>계정 → 회원 탈퇴</strong>를 선택합니다.</li>
+        <li>안내를 확인한 뒤 <strong>탈퇴</strong>를 누릅니다.</li>
+      </ol>
+      <p>루틴 업로드 화면의 계정 메뉴(⋮)에서도 동일하게 탈퇴할 수 있습니다.</p>
+
+      <h2>삭제되는 데이터</h2>
+      <ul>
+        <li>계정 식별 정보(Firebase UID, 닉네임, 이메일 등)</li>
+        <li>서버에 업로드한 공유 루틴(제목, 설명, 운동 구성)</li>
+        <li>루틴 설명에 포함된 업로드 이미지(서버 저장분)</li>
+      </ul>
+
+      <h2>유지·미삭제되는 데이터</h2>
+      <ul>
+        <li>기기에만 저장된 <strong>로컬 루틴</strong>(탈퇴 후에도 기기에 남을 수 있음)</li>
+        <li>관련 법령에 따라 보관이 필요한 로그·분쟁 대응 기록(해당 시)</li>
+      </ul>
+
+      <div class="note">YouTube 등 외부 동영상 링크는 당사 서버에 영상 파일을 저장하지 않으며, 탈퇴 시 업로드한 루틴 JSON에 포함된 링크 정보만 삭제됩니다.</div>
+
+      <h2>앱 사용이 어려운 경우</h2>
+      <p>Google Play 또는 App Store에 표시된 <strong>개발자 연락처</strong>로 계정 삭제를 요청해 주세요. 본인 확인 후 동일하게 처리합니다.</p>
+
+      <footer>최종 수정: 2026-06-27 · <a href="privacy.html">개인정보 처리방침</a></footer>
+    </section>
+
+    <section id="en" style="display:none">
+      <h1>Delete your account and data</h1>
+      <p>How to delete your <strong>Tabata Timer</strong> account and server-stored data.</p>
+
+      <h2>Delete in the app (recommended)</h2>
+      <ol>
+        <li>Open the app.</li>
+        <li>Open <strong>Settings</strong> (top right).</li>
+        <li>Choose <strong>Account → Delete account</strong>.</li>
+        <li>Confirm and tap <strong>Delete account</strong>.</li>
+      </ol>
+      <p>You can also delete your account from the account menu (⋮) on the upload screen.</p>
+
+      <h2>Data deleted</h2>
+      <ul>
+        <li>Account identifiers (Firebase UID, nickname, email if any)</li>
+        <li>Shared routines uploaded to our server</li>
+        <li>Images stored on our server for routine descriptions</li>
+      </ul>
+
+      <h2>Data not deleted</h2>
+      <ul>
+        <li><strong>Local routines</strong> saved only on your device</li>
+        <li>Records we must retain by law (if applicable)</li>
+      </ul>
+
+      <div class="note">We do not host YouTube or other video files; only link URLs in uploaded routine data are removed.</div>
+
+      <h2>If you cannot use the app</h2>
+      <p>Contact the <strong>developer</strong> listed on Google Play or the App Store and request account deletion. We will verify ownership and process the request.</p>
+
+      <footer>Last updated: 2026-06-27 · <a href="privacy.html#en">Privacy policy</a></footer>
+    </section>
+  </main>
+  <script>
+    function updateLang(){
+      var h=location.hash||"#ko";
+      document.querySelectorAll('header a[href^="#"]').forEach(function(a){a.classList.remove("active")});
+      if(h.indexOf("#en")===0){document.getElementById("btn-en").classList.add("active")}else{document.getElementById("btn-ko").classList.add("active")}
+      document.getElementById("ko").style.display=h.indexOf("#en")===0?"none":"block";
+      document.getElementById("en").style.display=h.indexOf("#en")===0?"block":"none";
+    }
+    window.addEventListener("hashchange",updateLang);
+    updateLang();
+  </script>
+</body>
+</html>

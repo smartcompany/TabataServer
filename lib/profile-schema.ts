@@ -35,6 +35,10 @@ const exerciseSchema = z.object({
 
 export const OFFICIAL_CATALOG_OWNER = 'admin';
 
+export const DEFAULT_CONTENT_LANGUAGE = 'ko';
+
+const contentLanguageSchema = z.enum(['en', 'ko', 'zh', 'ja']);
+
 export const routineProfileSchema = z.object({
   schemaVersion: z.literal(1),
   id: z
@@ -48,6 +52,7 @@ export const routineProfileSchema = z.object({
   title: z.string().min(1),
   description: z.string(),
   descriptionBlocks: descriptionBlocksSchema.optional(),
+  contentLanguage: contentLanguageSchema.optional(),
   exercises: z.array(exerciseSchema).min(1),
 });
 
@@ -61,6 +66,7 @@ export type ProfileSummary = {
   updatedAt: string;
   ownerId: string;
   ownerName?: string;
+  contentLanguage?: string;
 };
 
 export function toSummary(
@@ -78,11 +84,14 @@ export function toSummary(
     exerciseCount: profile.exercises.length,
     updatedAt,
     ownerId,
+    contentLanguage: profile.contentLanguage ?? DEFAULT_CONTENT_LANGUAGE,
   };
 }
 
 export function normalizeRoutineProfile(raw: unknown): RoutineProfile {
   const parsed = routineProfileSchema.parse(raw);
+  const contentLanguage =
+    parsed.contentLanguage ?? DEFAULT_CONTENT_LANGUAGE;
   const blocks = parsed.descriptionBlocks ?? [];
   const description = descriptionPlainText(parsed.description, blocks);
   const exercises = parsed.exercises.map((exercise) => {
@@ -100,6 +109,7 @@ export function normalizeRoutineProfile(raw: unknown): RoutineProfile {
   });
   return {
     ...parsed,
+    contentLanguage,
     description,
     descriptionBlocks: blocks.length > 0 ? blocks : undefined,
     exercises,
