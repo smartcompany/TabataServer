@@ -1,7 +1,6 @@
 import { randomUUID } from 'crypto';
 
 import {
-  createYouTubeContentPart,
   getChatCompletionText,
   isYouTubeUrl,
   type AIChatMessage,
@@ -20,6 +19,9 @@ import {
   loadPromptJson,
   renderPromptTemplate,
 } from '@/lib/prompt-loader';
+import {
+  buildYouTubePromptContext,
+} from '@/lib/youtube-metadata';
 
 const SYSTEM_PROMPT_FILE = 'ai-routine-system.txt';
 const USER_PROMPT_FILE = 'ai-routine-user.txt';
@@ -54,9 +56,10 @@ function buildSystemInstruction(outputLanguage: string): string {
   });
 }
 
-function buildUserMessage(userPrompt: string): string {
+function buildUserMessage(userPrompt: string, youtubeContext: string): string {
   return renderPromptTemplate(USER_PROMPT_FILE, {
     USER_PROMPT: userPrompt,
+    YOUTUBE_CONTEXT: youtubeContext,
   });
 }
 
@@ -321,29 +324,9 @@ function logAiRoutinePromptRequest(input: {
   contentLanguage: string;
   rawUserPrompt: string;
   youtubeUrls: string[];
-  messages: AIChatMessage[];
+  systemPrompt: string;
+  userPrompt: string;
 }): void {
-  const systemMessage = input.messages.find((message) => message.role === 'system');
-  const userMessage = input.messages.find((message) => message.role === 'user');
-
-  const systemText =
-    typeof systemMessage?.content === 'string'
-      ? systemMessage.content
-      : '';
-
-  const userParts =
-    userMessage && Array.isArray(userMessage.content)
-      ? userMessage.content.map((part) => {
-          if (part.type === 'youtube_url') {
-            return { type: 'youtube_url', url: part.youtube_url.url };
-          }
-          if (part.type === 'text') {
-            return { type: 'text', length: part.text.length, text: part.text };
-          }
-          return { type: part.type };
-        })
-      : userMessage?.content;
-
   console.info('[ai-routine] Gemini request', {
     provider: 'gemini',
     preset: 'long_output',
@@ -352,9 +335,10 @@ function logAiRoutinePromptRequest(input: {
     rawUserPromptLength: input.rawUserPrompt.length,
     rawUserPrompt: input.rawUserPrompt,
     youtubeUrls: input.youtubeUrls,
-    systemPromptLength: systemText.length,
-    systemPrompt: systemText,
-    userMessage: userParts,
+    systemPromptLength: input.systemPrompt.length,
+    systemPrompt: input.systemPrompt,
+    userPromptLength: input.userPrompt.length,
+    userPrompt: input.userPrompt,
   });
 }
 
@@ -391,7 +375,8 @@ export async function generateRoutineFromPrompt(input: {
   const contentLanguage = resolveContentLanguage(input.contentLanguage);
   const youtubeUrls = extractYouTubeUrls(prompt);
   const systemInstruction = buildSystemInstruction(contentLanguage);
-  const userMessageText = buildUserMessage(prompt);
+  const youtubeContext = await buildYouTubePromptContext(youtubeUrls);
+  const userMessageText = buildUserMessage(prompt, youtubeContext);
 
   const messages: AIChatMessage[] = [
     {
@@ -400,10 +385,7 @@ export async function generateRoutineFromPrompt(input: {
     },
     {
       role: 'user',
-      content: [
-        ...youtubeUrls.map((url) => createYouTubeContentPart(url)),
-        { type: 'text', text: userMessageText },
-      ],
+      content: userMessageText,
     },
   ];
 
@@ -411,7 +393,8 @@ export async function generateRoutineFromPrompt(input: {
     contentLanguage,
     rawUserPrompt: prompt,
     youtubeUrls,
-    messages,
+    systemPrompt: systemInstruction,
+    userPrompt: userMessageText,
   });
 
   const response = await geminiAi.createChatCompletion({
