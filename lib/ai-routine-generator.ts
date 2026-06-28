@@ -10,6 +10,9 @@ import { z } from 'zod';
 
 import { geminiAi } from '@/lib/ai-client';
 import {
+  type DescriptionBlock,
+} from '@/lib/description-blocks';
+import {
   parseRoutineProfile,
   type RoutineProfile,
 } from '@/lib/profile-schema';
@@ -252,6 +255,50 @@ function assignFreshIds(profile: RoutineProfile): RoutineProfile {
   };
 }
 
+function attachPromptVideoLinks(
+  profile: RoutineProfile,
+  videoUrls: string[],
+): RoutineProfile {
+  if (videoUrls.length === 0) {
+    return profile;
+  }
+
+  const existingBlocks = profile.descriptionBlocks ?? [];
+  const existingVideoUrls = new Set(
+    existingBlocks
+      .filter((block) => block.type === 'video')
+      .map((block) => block.url),
+  );
+
+  const newVideoBlocks: DescriptionBlock[] = videoUrls
+    .filter((url) => !existingVideoUrls.has(url))
+    .map((url) => ({
+      type: 'video',
+      url,
+      provider: 'youtube',
+    }));
+
+  if (newVideoBlocks.length === 0) {
+    return profile;
+  }
+
+  let blocks: DescriptionBlock[] = [...existingBlocks];
+  const plainDescription = profile.description.trim();
+  const hasTextBlock = blocks.some((block) => block.type === 'text');
+
+  if (!hasTextBlock && plainDescription.length > 0) {
+    blocks = [{ type: 'text', text: plainDescription }, ...blocks];
+  }
+
+  blocks = [...blocks, ...newVideoBlocks];
+
+  return parseRoutineProfile({
+    ...profile,
+    description: plainDescription,
+    descriptionBlocks: blocks,
+  });
+}
+
 function parseJsonFromModelText(text: string): unknown {
   const trimmed = text.trim();
   try {
@@ -391,10 +438,13 @@ export async function generateRoutineFromPrompt(input: {
     }
     throw error;
   }
-  const result = assignFreshIds({
-    ...profile,
-    contentLanguage,
-  });
+  const result = attachPromptVideoLinks(
+    assignFreshIds({
+      ...profile,
+      contentLanguage,
+    }),
+    youtubeUrls,
+  );
 
   logAiRoutinePromptResponse({ modelText, profile: result });
 
