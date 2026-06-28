@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "title": "클래식 타바타",
+  "description": "20초 운동 · 10초 휴식의 기본 타바타 프로토콜",
+  "exercises": [
+    {
+      "name": "점프 스쿼트",
+      "instruction": "발을 어깨 너비로 벌리고 앉았다가 가볍게 점프하며 일어섭니다.",
+      "order": 0,
+      "prepare": {
+        "durationSec": 10
+      },
+      "phases": [
+        {
+          "kind": "work",
+          "label": "스쿼트 · 점프",
+          "durationSec": 20,
+          "order": 0
+        },
+        {
+          "kind": "relax",
+          "label": "휴식",
+          "durationSec": 10,
+          "order": 1
+        }
+      ],
+      "reps": 8,
+      "sets": 1
+    }
+  ]
+}

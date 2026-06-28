@@ -1,12 +1,16 @@
 {
+  "ios_ads": [{ "rewarded_ad": 1 }],
+  "android_ads": [{ "rewarded_ad": 1 }],
   "ios_ad": "initial_ad",
   "android_ad": "initial_ad",
   "ref": {
     "ios": {
-      "initial_ad": "ca-app-pub-5520596727761259/1323317386"
+      "initial_ad": "ca-app-pub-5520596727761259/1323317386",
+      "rewarded_ad": "ca-app-pub-3940256099942544/1712485313"
     },
     "android": {
-      "initial_ad": "ca-app-pub-5520596727761259/3013205947"
+      "initial_ad": "ca-app-pub-5520596727761259/3013205947",
+      "rewarded_ad": "ca-app-pub-3940256099942544/5224354917"
     }
   }
 }
