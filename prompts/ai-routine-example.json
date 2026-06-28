@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "title": "클래식 타바타",
-  "description": "20초 운동 · 10초 휴식의 기본 타바타 프로토콜",
+  "title": "하체·어깨 혼합 루틴",
+  "description": "타바타(시간)와 횟수 기반 재활 동작 예시",
   "exercises": [
     {
       "name": "점프 스쿼트",
@@ -26,6 +26,36 @@
       ],
       "reps": 8,
       "sets": 1
+    },
+    {
+      "name": "팽귄 운동",
+      "instruction": "어깨에 수건을 끼고 겨드랑이에 고정한 뒤, 팔꿈치를 좌우로 움직입니다.",
+      "order": 1,
+      "prepare": {
+        "durationSec": 5
+      },
+      "phases": [
+        {
+          "kind": "work",
+          "label": "팔을 벌리기",
+          "durationSec": 8,
+          "order": 0,
+          "timingMode": "count",
+          "countReps": 10,
+          "secondsPerRep": 8
+        },
+        {
+          "kind": "relax",
+          "label": "팔을 오므리기",
+          "durationSec": 8,
+          "order": 1,
+          "timingMode": "count",
+          "countReps": 10,
+          "secondsPerRep": 8
+        }
+      ],
+      "reps": 1,
+      "sets": 5
     }
   ]
 }
