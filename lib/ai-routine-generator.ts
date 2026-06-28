@@ -6,6 +6,7 @@ import {
   isYouTubeUrl,
   type AIChatMessage,
 } from 'nextjs-share-lib/ai';
+import { z } from 'zod';
 
 import { geminiAi } from '@/lib/ai-client';
 import {
@@ -56,13 +57,158 @@ function buildUserMessage(userPrompt: string): string {
   });
 }
 
+function toInt(value: unknown, fallback: number, min: number): number {
+  const parsed =
+    typeof value === 'number'
+      ? value
+      : typeof value === 'string'
+        ? Number(value.trim())
+        : Number.NaN;
+  if (!Number.isFinite(parsed)) {
+    return fallback;
+  }
+  return Math.max(min, Math.round(parsed));
+}
+
+function toOptionalInt(
+  value: unknown,
+  min: number,
+): number | undefined {
+  if (value === undefined || value === null || value === '') {
+    return undefined;
+  }
+  const parsed =
+    typeof value === 'number'
+      ? value
+      : typeof value === 'string'
+        ? Number(value.trim())
+        : Number.NaN;
+  if (!Number.isFinite(parsed)) {
+    return undefined;
+  }
+  return Math.max(min, Math.round(parsed));
+}
+
+function normalizePhaseKind(value: unknown): 'work' | 'relax' {
+  const kind = String(value ?? 'work').trim().toLowerCase();
+  if (kind === 'relax' || kind === 'rest') {
+    return 'relax';
+  }
+  return 'work';
+}
+
+function normalizeTimingMode(value: unknown): 'duration' | 'count' | undefined {
+  const mode = String(value ?? '').trim().toLowerCase();
+  if (mode === 'count') {
+    return 'count';
+  }
+  if (mode === 'duration') {
+    return 'duration';
+  }
+  return undefined;
+}
+
+function normalizeCountOrder(value: unknown): 'ascending' | 'descending' | undefined {
+  const order = String(value ?? '').trim().toLowerCase();
+  if (order === 'descending') {
+    return 'descending';
+  }
+  if (order === 'ascending') {
+    return 'ascending';
+  }
+  return undefined;
+}
+
+function sanitizePhase(
+  phase: Record<string, unknown>,
+  phaseIndex: number,
+): Record<string, unknown> {
+  const {
+    id: _id,
+    timingMode,
+    countReps,
+    secondsPerRep,
+    countOrder,
+    ...rest
+  } = phase;
+  const normalizedTimingMode = normalizeTimingMode(timingMode);
+  const normalized: Record<string, unknown> = {
+    ...rest,
+    id: 'pending',
+    kind: normalizePhaseKind(phase.kind),
+    label: String(phase.label ?? `Phase ${phaseIndex + 1}`).trim() || `Phase ${phaseIndex + 1}`,
+    durationSec: toInt(phase.durationSec, 20, 1),
+    order: toInt(phase.order, phaseIndex, 0),
+  };
+
+  if (normalizedTimingMode === 'count') {
+    normalized.timingMode = 'count';
+    normalized.countReps = toOptionalInt(countReps, 1) ?? 8;
+    normalized.secondsPerRep = toOptionalInt(secondsPerRep, 1) ?? 5;
+    const normalizedOrder = normalizeCountOrder(countOrder);
+    if (normalizedOrder === 'descending') {
+      normalized.countOrder = 'descending';
+    }
+  }
+
+  return normalized;
+}
+
+function sanitizeExercise(
+  exercise: Record<string, unknown>,
+  exerciseIndex: number,
+): Record<string, unknown> {
+  const {
+    id: _id,
+    instructionBlocks: _instructionBlocks,
+    prepare,
+    phases,
+    ...rest
+  } = exercise;
+
+  if (!Array.isArray(phases) || phases.length === 0) {
+    throw new Error('Exercise missing phases in model response');
+  }
+
+  const prepareRecord =
+    prepare && typeof prepare === 'object'
+      ? (prepare as Record<string, unknown>)
+      : {};
+
+  return {
+    ...rest,
+    id: 'pending',
+    name:
+      String(exercise.name ?? `Exercise ${exerciseIndex + 1}`).trim() ||
+      `Exercise ${exerciseIndex + 1}`,
+    instruction: String(exercise.instruction ?? ''),
+    order: toInt(exercise.order, exerciseIndex, 0),
+    prepare: {
+      durationSec: toInt(prepareRecord.durationSec, 10, 0),
+    },
+    reps: toInt(exercise.reps, 8, 1),
+    sets: toInt(exercise.sets, 1, 1),
+    phases: phases.map((phase, phaseIndex) => {
+      if (!phase || typeof phase !== 'object') {
+        throw new Error('Invalid phase entry in model response');
+      }
+      return sanitizePhase(phase as Record<string, unknown>, phaseIndex);
+    }),
+  };
+}
+
 function prepareAiRoutineForParse(raw: unknown): unknown {
   if (!raw || typeof raw !== 'object') {
     throw new Error('Model response is not a JSON object');
   }
 
   const source = raw as Record<string, unknown>;
-  const { contentLanguage: _contentLanguage, id: _id, ...rest } = source;
+  const {
+    contentLanguage: _contentLanguage,
+    id: _id,
+    descriptionBlocks: _descriptionBlocks,
+    ...rest
+  } = source;
 
   if (!Array.isArray(source.exercises) || source.exercises.length === 0) {
     throw new Error('Model response missing exercises');
@@ -72,38 +218,17 @@ function prepareAiRoutineForParse(raw: unknown): unknown {
     ...rest,
     schemaVersion: 1,
     id: 'pending',
+    title:
+      String(source.title ?? 'AI Routine').trim() || 'AI Routine',
+    description: String(source.description ?? ''),
     exercises: source.exercises.map((exercise, exerciseIndex) => {
       if (!exercise || typeof exercise !== 'object') {
         throw new Error('Invalid exercise entry in model response');
       }
-      const entry = exercise as Record<string, unknown>;
-      const { id: _exerciseId, ...exerciseRest } = entry;
-
-      if (!Array.isArray(entry.phases) || entry.phases.length === 0) {
-        throw new Error('Exercise missing phases in model response');
-      }
-
-      return {
-        ...exerciseRest,
-        id: 'pending',
-        order:
-          typeof entry.order === 'number' ? entry.order : exerciseIndex,
-        phases: entry.phases.map((phase, phaseIndex) => {
-          if (!phase || typeof phase !== 'object') {
-            throw new Error('Invalid phase entry in model response');
-          }
-          const phaseEntry = phase as Record<string, unknown>;
-          const { id: _phaseId, ...phaseRest } = phaseEntry;
-          return {
-            ...phaseRest,
-            id: 'pending',
-            order:
-              typeof phaseEntry.order === 'number'
-                ? phaseEntry.order
-                : phaseIndex,
-          };
-        }),
-      };
+      return sanitizeExercise(
+        exercise as Record<string, unknown>,
+        exerciseIndex,
+      );
     }),
   };
 }
@@ -209,7 +334,7 @@ export async function generateRoutineFromPrompt(input: {
   }
 
   const prompt = input.prompt.trim();
-  if (prompt.length < 8) {
+  if (prompt.length < 1) {
     throw new Error('Prompt is too short');
   }
   if (prompt.length > 4000) {
@@ -254,7 +379,18 @@ export async function generateRoutineFromPrompt(input: {
   }
 
   const parsed = parseJsonFromModelText(modelText);
-  const profile = parseRoutineProfile(prepareAiRoutineForParse(parsed));
+  let profile: RoutineProfile;
+  try {
+    profile = parseRoutineProfile(prepareAiRoutineForParse(parsed));
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      console.error('[ai-routine] profile validation failed', {
+        issues: error.issues,
+        modelText,
+      });
+    }
+    throw error;
+  }
   const result = assignFreshIds({
     ...profile,
     contentLanguage,
