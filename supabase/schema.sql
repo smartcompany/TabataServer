@@ -47,3 +47,35 @@ create policy "tabata_users_deny_anon"
   to anon, authenticated
   using (false)
   with check (false);
+
+-- AI routine generation usage (dashboard analytics)
+create table if not exists tabata_ai_usage_logs (
+  id uuid primary key default gen_random_uuid(),
+  created_at timestamptz not null default now(),
+  model text not null default 'gemini-2.5-flash',
+  content_language text,
+  prompt_length int not null default 0,
+  routine_id text,
+  routine_title text,
+  exercise_count int,
+  prompt_token_count int not null default 0,
+  candidates_token_count int not null default 0,
+  thoughts_token_count int not null default 0,
+  total_token_count int not null default 0,
+  estimated_input_usd numeric(12, 6) not null default 0,
+  estimated_output_usd numeric(12, 6) not null default 0,
+  estimated_total_usd numeric(12, 6) not null default 0
+);
+
+create index if not exists tabata_ai_usage_logs_created_at_idx
+  on tabata_ai_usage_logs (created_at desc);
+
+alter table tabata_ai_usage_logs enable row level security;
+
+drop policy if exists "tabata_ai_usage_logs_deny_anon" on tabata_ai_usage_logs;
+create policy "tabata_ai_usage_logs_deny_anon"
+  on tabata_ai_usage_logs
+  for all
+  to anon, authenticated
+  using (false)
+  with check (false);

@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 
+import { AiUsagePanel } from '@/app/dashboard/components/ai-usage-panel';
 import { ProfileEditor } from '@/app/dashboard/components/profile-editor';
 import {
   createEmptyProfile,
@@ -284,7 +285,10 @@ export default function DashboardPage() {
         </button>
       </header>
 
-      <main className="p-4 max-w-7xl mx-auto grid gap-4 lg:grid-cols-[280px_1fr]">
+      <main className="p-4 max-w-7xl mx-auto space-y-4">
+        <AiUsagePanel />
+
+        <div className="grid gap-4 lg:grid-cols-[280px_1fr]">
         <section className="rounded-xl border border-zinc-200 bg-white overflow-hidden">
           <div className="flex items-center justify-between px-4 py-3 border-b border-zinc-200">
             <h2 className="font-medium text-zinc-800">프로필 목록</h2>
@@ -366,6 +370,7 @@ export default function DashboardPage() {
             </div>
           )}
         </section>
+        </div>
       </main>
     </div>
   );

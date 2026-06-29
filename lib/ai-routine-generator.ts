@@ -8,6 +8,12 @@ import {
 import { z } from 'zod';
 
 import { geminiAi } from '@/lib/ai-client';
+import { recordAiRoutineUsage } from '@/lib/ai-usage-store';
+import {
+  estimateGeminiFlashCostUsd,
+  parseGeminiTokenUsage,
+  roundUsd,
+} from '@/lib/gemini-usage';
 import {
   type DescriptionBlock,
 } from '@/lib/description-blocks';
@@ -345,12 +351,33 @@ function logAiRoutinePromptRequest(input: {
 function logAiRoutinePromptResponse(input: {
   modelText: string;
   profile: RoutineProfile;
+  usage?: Record<string, unknown>;
 }): void {
+  const tokenUsage = parseGeminiTokenUsage(input.usage);
+  const estimatedCostUsd = tokenUsage
+    ? estimateGeminiFlashCostUsd(tokenUsage)
+    : undefined;
+
   console.info('[ai-routine] Gemini response', {
     modelTextLength: input.modelText.length,
     routineId: input.profile.id,
     title: input.profile.title,
     exerciseCount: input.profile.exercises.length,
+    ...(tokenUsage
+      ? {
+          tokenUsage,
+          estimatedCostUsd: estimatedCostUsd
+            ? {
+                inputUsd: roundUsd(estimatedCostUsd.inputUsd),
+                outputUsd: roundUsd(estimatedCostUsd.outputUsd),
+                totalUsd: roundUsd(estimatedCostUsd.totalUsd),
+                pricingModel: estimatedCostUsd.pricingModel,
+                pricingTier: estimatedCostUsd.pricingTier,
+                note: estimatedCostUsd.note,
+              }
+            : undefined,
+        }
+      : {}),
     modelText: input.modelText,
   });
 }
@@ -429,7 +456,20 @@ export async function generateRoutineFromPrompt(input: {
     youtubeUrls,
   );
 
-  logAiRoutinePromptResponse({ modelText, profile: result });
+  logAiRoutinePromptResponse({
+    modelText,
+    profile: result,
+    usage: response.usage,
+  });
+
+  await recordAiRoutineUsage({
+    contentLanguage,
+    promptLength: prompt.length,
+    routineId: result.id,
+    routineTitle: result.title,
+    exerciseCount: result.exercises.length,
+    usage: response.usage,
+  });
 
   return result;
 }
