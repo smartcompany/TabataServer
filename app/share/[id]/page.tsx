@@ -2,6 +2,15 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 
+import {
+  buildDirectStoreRedirectScript,
+  buildInAppStoreLandingRedirectScript,
+  buildStoreButtonHrefScript,
+} from '@/lib/client-store-redirect';
+import {
+  IOS_APP_STORE_WEB,
+  PLAY_STORE_WEB,
+} from '@/lib/applink';
 import { buildApplinkSocialUrl } from '@/lib/share-url';
 import { getSharedRoutine } from '@/lib/shared-routine-store';
 import { descriptionPlainText } from '@/lib/description-blocks';
@@ -10,19 +19,13 @@ type PageProps = {
   params: Promise<{ id: string }>;
 };
 
-const REDIRECT_SCRIPT = `
-(function () {
-  var ua = typeof navigator !== "undefined" ? navigator.userAgent || "" : "";
-  var inApp = /(Twitter|X\\/[\\d.]+|FBIOS|FBAN|FBAV|Line\\/|KakaoTalk|Kakao|Daum|KAKAOTALK|Whatsapp|Telegram|Snapchat|Slack|LinkedIn|FB_IAB|Instagram|Pinterest|musical_ly|ByteDance|Aweme|; wv\\))/i.test(ua);
-  if (inApp) { return; }
-  var isMobile = /android|iphone|ipad|ipod/i.test(ua);
-  if (!isMobile) { return; }
-  var target = ${JSON.stringify(buildApplinkSocialUrl())};
-  window.setTimeout(function () {
-    window.location.replace(target);
-  }, 1500);
-})();
-`.trim();
+const socialLandingUrl = buildApplinkSocialUrl();
+
+const SHARE_LANDING_SCRIPT = [
+  buildStoreButtonHrefScript(),
+  buildDirectStoreRedirectScript({ fallbackDelayMs: 2000 }),
+  buildInAppStoreLandingRedirectScript(socialLandingUrl, { delayMs: 3000 }),
+].join('\n');
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { id } = await params;
@@ -56,11 +59,9 @@ export default async function ShareRoutinePage({ params }: PageProps) {
     .map((exercise) => exercise.name)
     .filter(Boolean);
 
-  const storeUrl = buildApplinkSocialUrl();
-
   return (
     <>
-      <script dangerouslySetInnerHTML={{ __html: REDIRECT_SCRIPT }} />
+      <script dangerouslySetInnerHTML={{ __html: SHARE_LANDING_SCRIPT }} />
       <main
         className="mx-auto flex min-h-[100dvh] max-w-lg flex-col bg-zinc-950 px-5 pb-10 pt-[max(1.5rem,env(safe-area-inset-top))] text-zinc-100"
         style={{ minHeight: '100dvh' }}
@@ -85,15 +86,30 @@ export default async function ShareRoutinePage({ params }: PageProps) {
           </section>
         ) : null}
         <div className="mt-8 flex flex-col gap-3">
+          <p className="m-0 text-center text-xs text-zinc-500">
+            앱이 설치되어 있으면 링크를 누를 때 바로 앱이 열립니다. 이 화면이 보이면
+            잠시 후 스토어로 이동합니다.
+          </p>
           <a
-            href={storeUrl}
+            id="share-btn-ios"
+            href={IOS_APP_STORE_WEB}
             className="block rounded-xl bg-orange-500 px-5 py-3.5 text-center text-sm font-semibold text-zinc-950 no-underline"
           >
-            앱에서 열기 / 설치하기
+            App Store에서 설치
           </a>
-          <p className="m-0 text-center text-xs text-zinc-500">
-            앱이 설치되어 있으면 이 링크로 바로 열립니다. 없으면 스토어로 이동합니다.
-          </p>
+          <a
+            id="share-btn-android"
+            href={PLAY_STORE_WEB}
+            className="block rounded-xl border border-zinc-600 bg-white/5 px-5 py-3.5 text-center text-sm font-semibold text-zinc-100 no-underline"
+          >
+            Google Play에서 설치
+          </a>
+          <a
+            href={socialLandingUrl}
+            className="block text-center text-xs text-orange-400 no-underline hover:underline"
+          >
+            스토어가 자동으로 열리지 않으면 여기를 눌러 주세요
+          </a>
         </div>
         <p className="mt-auto pt-10 text-center text-xs text-zinc-600">
           <Link href="/" className="text-orange-400 no-underline hover:underline">
