@@ -1,0 +1,16 @@
+{
+  "applinks": {
+    "apps": [],
+    "details": [
+      {
+        "appIDs": ["NTCK5U8AWD.com.smartcompany.tabata"],
+        "components": [
+          {
+            "/": "/share/*",
+            "comment": "Shared workout routine deep links"
+          }
+        ]
+      }
+    ]
+  }
+}

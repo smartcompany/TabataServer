@@ -79,3 +79,23 @@ create policy "tabata_ai_usage_logs_deny_anon"
   to anon, authenticated
   using (false)
   with check (false);
+
+-- Ephemeral routine snapshots for HTTPS share links (/share/{id})
+create table if not exists tabata_shared_routines (
+  id uuid primary key,
+  data jsonb not null,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists tabata_shared_routines_created_at_idx
+  on tabata_shared_routines (created_at desc);
+
+alter table tabata_shared_routines enable row level security;
+
+drop policy if exists "tabata_shared_routines_deny_anon" on tabata_shared_routines;
+create policy "tabata_shared_routines_deny_anon"
+  on tabata_shared_routines
+  for all
+  to anon, authenticated
+  using (false)
+  with check (false);
