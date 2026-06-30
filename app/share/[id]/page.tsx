@@ -3,14 +3,10 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 
 import {
-  buildDirectStoreRedirectScript,
-  buildInAppStoreLandingRedirectScript,
-  buildStoreButtonHrefScript,
-} from '@/lib/client-store-redirect';
-import {
   IOS_APP_STORE_WEB,
   PLAY_STORE_WEB,
 } from '@/lib/applink';
+import { buildShareLandingScript } from '@/lib/share-app-scheme';
 import { buildApplinkSocialUrl } from '@/lib/share-url';
 import { getSharedRoutine } from '@/lib/shared-routine-store';
 import { descriptionPlainText } from '@/lib/description-blocks';
@@ -18,14 +14,6 @@ import { descriptionPlainText } from '@/lib/description-blocks';
 type PageProps = {
   params: Promise<{ id: string }>;
 };
-
-const socialLandingUrl = buildApplinkSocialUrl();
-
-const SHARE_LANDING_SCRIPT = [
-  buildStoreButtonHrefScript(),
-  buildDirectStoreRedirectScript({ fallbackDelayMs: 2000 }),
-  buildInAppStoreLandingRedirectScript(socialLandingUrl, { delayMs: 3000 }),
-].join('\n');
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { id } = await params;
@@ -59,9 +47,12 @@ export default async function ShareRoutinePage({ params }: PageProps) {
     .map((exercise) => exercise.name)
     .filter(Boolean);
 
+  const socialLandingUrl = buildApplinkSocialUrl();
+  const landingScript = buildShareLandingScript(id, socialLandingUrl);
+
   return (
     <>
-      <script dangerouslySetInnerHTML={{ __html: SHARE_LANDING_SCRIPT }} />
+      <script dangerouslySetInnerHTML={{ __html: landingScript }} />
       <main
         className="mx-auto flex min-h-[100dvh] max-w-lg flex-col bg-zinc-950 px-5 pb-10 pt-[max(1.5rem,env(safe-area-inset-top))] text-zinc-100"
         style={{ minHeight: '100dvh' }}
@@ -87,8 +78,8 @@ export default async function ShareRoutinePage({ params }: PageProps) {
         ) : null}
         <div className="mt-8 flex flex-col gap-3">
           <p className="m-0 text-center text-xs text-zinc-500">
-            앱이 설치되어 있으면 링크를 누를 때 바로 앱이 열립니다. 이 화면이 보이면
-            잠시 후 스토어로 이동합니다.
+            앱이 설치되어 있으면 자동으로 앱이 열립니다. 열리지 않으면 잠시 후
+            스토어로 이동합니다.
           </p>
           <a
             id="share-btn-ios"
