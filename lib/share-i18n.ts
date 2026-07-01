@@ -1,9 +1,8 @@
-import {
-  DEFAULT_CONTENT_LANGUAGE,
-  type RoutineProfile,
-} from '@/lib/profile-schema';
+import type { RoutineProfile } from '@/lib/profile-schema';
 
 export type ContentLanguage = NonNullable<RoutineProfile['contentLanguage']>;
+
+const SHARE_DEFAULT_LANGUAGE: ContentLanguage = 'en';
 
 /** Flutter `lib/l10n/app_*.arb` → `appTitle` 과 동일 */
 const APP_TITLES: Record<ContentLanguage, string> = {
@@ -81,11 +80,11 @@ const OPEN_GRAPH_LOCALES: Record<ContentLanguage, string> = {
 export function resolveContentLanguage(
   value?: string | null,
 ): ContentLanguage {
-  const lang = value?.trim() || DEFAULT_CONTENT_LANGUAGE;
+  const lang = value?.trim() || SHARE_DEFAULT_LANGUAGE;
   if (lang === 'en' || lang === 'ko' || lang === 'zh' || lang === 'ja') {
     return lang;
   }
-  return DEFAULT_CONTENT_LANGUAGE;
+  return SHARE_DEFAULT_LANGUAGE;
 }
 
 /** SNS 크롤러 등 루틴 데이터 없을 때 Accept-Language 폴백 */
@@ -93,7 +92,7 @@ export function resolveContentLanguageFromHeader(
   acceptLanguage: string | null | undefined,
 ): ContentLanguage {
   if (!acceptLanguage) {
-    return DEFAULT_CONTENT_LANGUAGE;
+    return SHARE_DEFAULT_LANGUAGE;
   }
 
   for (const part of acceptLanguage.split(',')) {
@@ -103,7 +102,7 @@ export function resolveContentLanguageFromHeader(
     }
   }
 
-  return DEFAULT_CONTENT_LANGUAGE;
+  return SHARE_DEFAULT_LANGUAGE;
 }
 
 export function getSharePageCopy(lang: ContentLanguage): SharePageCopy {
