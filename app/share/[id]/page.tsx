@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import { headers } from 'next/headers';
 import { notFound } from 'next/navigation';
 
 import {
@@ -7,6 +8,13 @@ import {
   PLAY_STORE_WEB,
 } from '@/lib/applink';
 import { buildShareLandingScript } from '@/lib/share-app-scheme';
+import {
+  buildSharePageTitle,
+  getOpenGraphLocale,
+  getSharePageCopy,
+  resolveContentLanguage,
+  resolveContentLanguageFromHeader,
+} from '@/lib/share-i18n';
 import { buildApplinkSocialUrl, buildSharePageUrl } from '@/lib/share-url';
 import { getSharedRoutine } from '@/lib/shared-routine-store';
 import { descriptionPlainText } from '@/lib/description-blocks';
@@ -15,20 +23,25 @@ type PageProps = {
   params: Promise<{ id: string }>;
 };
 
-const APP_NAME = '모두의 타바타';
-
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { id } = await params;
   const row = await getSharedRoutine(id).catch(() => null);
   if (!row) {
-    return { title: `${APP_NAME} — 공유` };
+    const acceptLanguage = (await headers()).get('accept-language');
+    const copy = getSharePageCopy(
+      resolveContentLanguageFromHeader(acceptLanguage),
+    );
+    return { title: `${copy.appTitle} — ${copy.shareFallbackTitle}` };
   }
+
+  const lang = resolveContentLanguage(row.data.contentLanguage);
+  const copy = getSharePageCopy(lang);
   const description = descriptionPlainText(
     row.data.description,
     row.data.descriptionBlocks,
   );
-  const pageTitle = `${row.data.title} — ${APP_NAME}`;
-  const pageDescription = description.slice(0, 160) || '공유된 운동 루틴';
+  const pageTitle = buildSharePageTitle(row.data.title, lang);
+  const pageDescription = description.slice(0, 160) || copy.defaultDescription;
   return {
     title: pageTitle,
     description: pageDescription,
@@ -37,7 +50,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       title: pageTitle,
       description: pageDescription,
       url: buildSharePageUrl(id),
-      siteName: APP_NAME,
+      siteName: copy.appTitle,
+      locale: getOpenGraphLocale(lang),
       type: 'website',
     },
   };
@@ -49,6 +63,8 @@ export default async function ShareRoutinePage({ params }: PageProps) {
   if (!row) notFound();
 
   const routine = row.data;
+  const lang = resolveContentLanguage(routine.contentLanguage);
+  const copy = getSharePageCopy(lang);
   const description = descriptionPlainText(
     routine.description,
     routine.descriptionBlocks,
@@ -69,7 +85,7 @@ export default async function ShareRoutinePage({ params }: PageProps) {
         style={{ minHeight: '100dvh' }}
       >
         <p className="m-0 text-xs font-medium uppercase tracking-wide text-orange-400">
-          Shared routine
+          {copy.sharedRoutineBadge}
         </p>
         <h1 className="m-0 mt-2 text-2xl font-bold leading-tight">{routine.title}</h1>
         {description ? (
@@ -79,7 +95,9 @@ export default async function ShareRoutinePage({ params }: PageProps) {
         ) : null}
         {exerciseNames.length > 0 ? (
           <section className="mt-5">
-            <h2 className="m-0 text-sm font-semibold text-zinc-300">Exercises</h2>
+            <h2 className="m-0 text-sm font-semibold text-zinc-300">
+              {copy.exercisesHeading}
+            </h2>
             <ul className="m-0 mt-2 list-inside list-disc space-y-1 text-sm text-zinc-400">
               {exerciseNames.map((name) => (
                 <li key={name}>{name}</li>
@@ -89,33 +107,32 @@ export default async function ShareRoutinePage({ params }: PageProps) {
         ) : null}
         <div className="mt-8 flex flex-col gap-3">
           <p className="m-0 text-center text-xs text-zinc-500">
-            앱이 설치되어 있으면 자동으로 앱이 열립니다. 열리지 않으면 잠시 후
-            스토어로 이동합니다.
+            {copy.appOpenHint}
           </p>
           <a
             id="share-btn-ios"
             href={IOS_APP_STORE_WEB}
             className="block rounded-xl bg-orange-500 px-5 py-3.5 text-center text-sm font-semibold text-zinc-950 no-underline"
           >
-            App Store에서 설치
+            {copy.installAppStore}
           </a>
           <a
             id="share-btn-android"
             href={PLAY_STORE_WEB}
             className="block rounded-xl border border-zinc-600 bg-white/5 px-5 py-3.5 text-center text-sm font-semibold text-zinc-100 no-underline"
           >
-            Google Play에서 설치
+            {copy.installPlayStore}
           </a>
           <a
             href={socialLandingUrl}
             className="block text-center text-xs text-orange-400 no-underline hover:underline"
           >
-            스토어가 자동으로 열리지 않으면 여기를 눌러 주세요
+            {copy.storeFallbackLink}
           </a>
         </div>
         <p className="mt-auto pt-10 text-center text-xs text-zinc-600">
           <Link href="/" className="text-orange-400 no-underline hover:underline">
-            {APP_NAME}
+            {copy.appTitle}
           </Link>
         </p>
       </main>
