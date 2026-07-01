@@ -7,7 +7,7 @@ import {
   PLAY_STORE_WEB,
 } from '@/lib/applink';
 import { buildShareLandingScript } from '@/lib/share-app-scheme';
-import { buildApplinkSocialUrl } from '@/lib/share-url';
+import { buildApplinkSocialUrl, buildSharePageUrl } from '@/lib/share-url';
 import { getSharedRoutine } from '@/lib/shared-routine-store';
 import { descriptionPlainText } from '@/lib/description-blocks';
 
@@ -15,20 +15,31 @@ type PageProps = {
   params: Promise<{ id: string }>;
 };
 
+const APP_NAME = '모두의 타바타';
+
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { id } = await params;
   const row = await getSharedRoutine(id).catch(() => null);
   if (!row) {
-    return { title: 'Tabata Timer — Share' };
+    return { title: `${APP_NAME} — 공유` };
   }
   const description = descriptionPlainText(
     row.data.description,
     row.data.descriptionBlocks,
   );
+  const pageTitle = `${row.data.title} — ${APP_NAME}`;
+  const pageDescription = description.slice(0, 160) || '공유된 운동 루틴';
   return {
-    title: `${row.data.title} — Tabata Timer`,
-    description: description.slice(0, 160) || 'Shared workout routine',
+    title: pageTitle,
+    description: pageDescription,
     robots: { index: false, follow: false },
+    openGraph: {
+      title: pageTitle,
+      description: pageDescription,
+      url: buildSharePageUrl(id),
+      siteName: APP_NAME,
+      type: 'website',
+    },
   };
 }
 
@@ -104,7 +115,7 @@ export default async function ShareRoutinePage({ params }: PageProps) {
         </div>
         <p className="mt-auto pt-10 text-center text-xs text-zinc-600">
           <Link href="/" className="text-orange-400 no-underline hover:underline">
-            Tabata Timer
+            {APP_NAME}
           </Link>
         </p>
       </main>
