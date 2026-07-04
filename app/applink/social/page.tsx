@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import { headers } from 'next/headers';
 
 import {
   IOS_APP_STORE_ITMS,
@@ -7,6 +8,10 @@ import {
   PLAY_STORE_MARKET,
   PLAY_STORE_WEB,
 } from '@/lib/applink';
+import {
+  getApplinkSocialCopy,
+  resolveApplinkLocale,
+} from '@/lib/applink-l10n';
 
 /**
  * X·카카오·FB·인스타 등: 자동 itms 를 쓰면 WebView가 비거나 UI가 먼저 켜져
@@ -37,31 +42,51 @@ const BOOT_SCRIPT = `
 })();
 `.trim();
 
-export const metadata: Metadata = {
-  title: 'Tabata Timer — Download',
-  description: 'App Store 또는 Google Play에서 Tabata Timer를 설치하세요.',
-  robots: { index: false, follow: false },
-  openGraph: {
-    title: 'Tabata Timer',
-    description: '운동 타이머 및 루틴 공유 앱',
-    url: 'https://tabata-server.vercel.app/applink/social',
-  },
+async function resolvePageLocale(queryLang?: string | null) {
+  const h = await headers();
+  return resolveApplinkLocale(h.get('accept-language'), queryLang);
+}
+
+type PageProps = {
+  searchParams: Promise<{ lang?: string }>;
 };
 
-export default function AppLinkSocialPage() {
+export async function generateMetadata({
+  searchParams,
+}: PageProps): Promise<Metadata> {
+  const { lang } = await searchParams;
+  const copy = getApplinkSocialCopy(await resolvePageLocale(lang));
+  return {
+    title: copy.pageTitle,
+    description: copy.metaDescription,
+    robots: { index: false, follow: false },
+    openGraph: {
+      title: copy.appTitle,
+      description: copy.ogDescription,
+      url: 'https://tabata-server.vercel.app/applink/social',
+    },
+  };
+}
+
+export default async function AppLinkSocialPage({ searchParams }: PageProps) {
+  const { lang } = await searchParams;
+  const locale = await resolvePageLocale(lang);
+  const copy = getApplinkSocialCopy(locale);
+
   return (
     <>
       <script dangerouslySetInnerHTML={{ __html: BOOT_SCRIPT }} />
       <main
         className="box-border flex min-h-[100dvh] flex-col items-center justify-start gap-2 bg-zinc-950 px-6 pt-[max(1.5rem,env(safe-area-inset-top))] pb-[max(5rem,env(safe-area-inset-bottom,32px))] text-center text-zinc-100"
         style={{ minHeight: '100dvh' }}
+        lang={locale}
       >
-        <p className="m-0 text-base font-semibold">Tabata Timer</p>
+        <p className="m-0 text-base font-semibold">{copy.appTitle}</p>
         <p className="m-0 mt-2 max-w-sm text-xs leading-relaxed text-zinc-400">
-          X·카카오 등 앱 안 브라우저는 아래 버튼을 눌러 스토어로 이동해 주세요.
+          {copy.inAppHint}
         </p>
         <p className="m-0 mb-4 mt-1 text-[11px] text-zinc-600">
-          일반 Safari에서는 자동으로 스토어가 열릴 수 있습니다.
+          {copy.safariHint}
         </p>
         <div className="flex w-full max-w-sm flex-col gap-3">
           <a
@@ -81,13 +106,13 @@ export default function AppLinkSocialPage() {
         </div>
         <p className="mt-8 text-xs text-zinc-500">
           <Link href="/" className="text-orange-400 no-underline hover:underline">
-            서버 홈
+            {copy.serverHome}
           </Link>
         </p>
         <noscript>
           <p>
             <a href={IOS_APP_STORE_WEB} className="text-orange-400">
-              App Store로 이동
+              {copy.noscriptAppStore}
             </a>
           </p>
         </noscript>

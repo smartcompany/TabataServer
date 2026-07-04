@@ -1,3 +1,5 @@
+export const APP_DISPLAY_NAME = "Everyone's Tabata";
+
 export const IOS_APP_STORE_WEB =
   'https://apps.apple.com/app/id6783721406';
 

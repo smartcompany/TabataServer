@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 
 import {
+  APP_DISPLAY_NAME,
   IOS_APP_STORE_WEB,
   PLAY_STORE_WEB,
 } from '@/lib/applink';
@@ -19,14 +20,14 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const { id } = await params;
   const row = await getSharedRoutine(id).catch(() => null);
   if (!row) {
-    return { title: 'Tabata Timer — Share' };
+    return { title: `${APP_DISPLAY_NAME} — Share` };
   }
   const description = descriptionPlainText(
     row.data.description,
     row.data.descriptionBlocks,
   );
   return {
-    title: `${row.data.title} — Tabata Timer`,
+    title: `${row.data.title} — ${APP_DISPLAY_NAME}`,
     description: description.slice(0, 160) || 'Shared workout routine',
     robots: { index: false, follow: false },
   };
@@ -104,7 +105,7 @@ export default async function ShareRoutinePage({ params }: PageProps) {
         </div>
         <p className="mt-auto pt-10 text-center text-xs text-zinc-600">
           <Link href="/" className="text-orange-400 no-underline hover:underline">
-            Tabata Timer
+            {APP_DISPLAY_NAME}
           </Link>
         </p>
       </main>

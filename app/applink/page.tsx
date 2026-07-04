@@ -1,9 +1,9 @@
 import { redirect } from 'next/navigation';
 
-import { IOS_APP_STORE_WEB } from '@/lib/applink';
+import { APP_DISPLAY_NAME, IOS_APP_STORE_WEB } from '@/lib/applink';
 
 export const metadata = {
-  title: 'Tabata Timer — App Store',
+  title: `${APP_DISPLAY_NAME} — App Store`,
 };
 
 /**
