@@ -1,4 +1,10 @@
 {
+  "onboarding_recommended_routine_ids": [
+    "full-body-warmup",
+    "core-strength",
+    "lower-body-tabata",
+    "upper-body-warmup"
+  ],
   "ios_ads": [{ "rewarded_test": 1 }],
   "android_ads": [{ "rewarded_test": 1 }],
   "ref": {
