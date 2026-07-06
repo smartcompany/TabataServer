@@ -5,8 +5,8 @@
     "lower-body-tabata",
     "upper-body-warmup"
   ],
-  "ios_ads": [{ "initial_ad": 4 },{ "rewarded_ad": 1 }],
-  "android_ads": [{ "initial_ad": 4 },{ "rewarded_ad": 1 }],
+  "ios_ads": [{ "rewarded_test": 1 }],
+  "android_ads": [{ "rewarded_test": 1 }],
   "ref": {
     "ios": {
       "rewarded_test": "ca-app-pub-3940256099942544/1712485313",
