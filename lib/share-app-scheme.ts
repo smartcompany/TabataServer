@@ -15,10 +15,7 @@ export function buildTabataShareAppSchemeUrl(shareId: string): string {
 const IN_APP_UA =
   /(Twitter|X\/[\d.]+|FBIOS|FBAN|FBAV|Line\/|KakaoTalk|Kakao|Daum|KAKAOTALK|Whatsapp|Telegram|Snapchat|Slack|LinkedIn|FB_IAB|Instagram|Pinterest|musical_ly|ByteDance|Aweme|; wv\))/i;
 
-/**
- * `/share/{id}` 웹 진입 시 앱 스킴을 hidden iframe 으로 시도 (카카오 인앱 등 UL 미동작).
- * 앱 미설치면 웹에 머무른 뒤 스토어/안내 페이지로 이동.
- */
+/** 앱 스킴 시도 후 실패 시 스토어/다운로드 페이지로만 이동 (루틴 HTML 미표시). */
 export function buildShareLandingScript(
   shareId: string,
   socialLandingUrl: string,
@@ -26,7 +23,6 @@ export function buildShareLandingScript(
   const appSchemeUrl = buildTabataShareAppSchemeUrl(shareId);
   return `
 (function () {
-  var shareId = ${JSON.stringify(shareId)};
   var appScheme = ${JSON.stringify(appSchemeUrl)};
   var socialLanding = ${JSON.stringify(socialLandingUrl)};
   var ua = typeof navigator !== "undefined" ? navigator.userAgent || "" : "";
@@ -41,32 +37,14 @@ export function buildShareLandingScript(
       switchedToApp = true;
     }
   }
-  document.addEventListener("visibilitychange", onHidden, { passive: true });
 
-  var elIos = document.getElementById("share-btn-ios");
-  var elAnd = document.getElementById("share-btn-android");
-  if (isIOS && elIos) { elIos.setAttribute("href", ${JSON.stringify(IOS_APP_STORE_ITMS)}); }
-  if (isAndroid && elAnd) { elAnd.setAttribute("href", ${JSON.stringify(PLAY_STORE_MARKET)}); }
-
-  if (!isMobile) { return; }
-
-  var iframe = document.createElement("iframe");
-  iframe.style.display = "none";
-  iframe.setAttribute("aria-hidden", "true");
-  iframe.src = appScheme;
-  document.body.appendChild(iframe);
-
-  window.setTimeout(function () {
-    document.removeEventListener("visibilitychange", onHidden);
-    if (iframe && iframe.parentNode) {
-      iframe.parentNode.removeChild(iframe);
-    }
-    if (switchedToApp) { return; }
-
+  function redirectToDownload() {
     if (inApp) {
-      window.setTimeout(function () {
-        window.location.replace(socialLanding);
-      }, 1500);
+      window.location.replace(socialLanding);
+      return;
+    }
+    if (!isMobile) {
+      window.location.replace(socialLanding);
       return;
     }
 
@@ -90,7 +68,37 @@ export function buildShareLandingScript(
       cancelStore();
       window.location.replace(storeWeb);
     }
-  }, 1200);
+  }
+
+  function tryOpenApp() {
+    document.addEventListener("visibilitychange", onHidden, { passive: true });
+
+    var iframe = document.createElement("iframe");
+    iframe.style.display = "none";
+    iframe.setAttribute("aria-hidden", "true");
+    iframe.src = appScheme;
+    document.body.appendChild(iframe);
+
+    try {
+      window.location.href = appScheme;
+    } catch (e) {}
+
+    window.setTimeout(function () {
+      document.removeEventListener("visibilitychange", onHidden);
+      if (iframe && iframe.parentNode) {
+        iframe.parentNode.removeChild(iframe);
+      }
+      if (switchedToApp) { return; }
+      redirectToDownload();
+    }, 1200);
+  }
+
+  if (!isMobile) {
+    redirectToDownload();
+    return;
+  }
+
+  tryOpenApp();
 })();
 `.trim();
 }
