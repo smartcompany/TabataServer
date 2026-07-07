@@ -72,25 +72,26 @@ export function buildShareLandingScript(
 
   function tryOpenApp() {
     document.addEventListener("visibilitychange", onHidden, { passive: true });
+    window.addEventListener("pagehide", onHidden, { passive: true });
 
+    // In-app webview(카카오 등)에서는 커스텀 스킴으로 앱이 열림.
+    // 최상위 location.href 로 스킴을 열면 iOS Safari에서 "주소 유효하지 않음"
+    // 오류 팝업이 뜨고 이후 리다이렉트 타이머가 취소되므로, iframe 으로만 시도한다.
     var iframe = document.createElement("iframe");
     iframe.style.display = "none";
     iframe.setAttribute("aria-hidden", "true");
     iframe.src = appScheme;
     document.body.appendChild(iframe);
 
-    try {
-      window.location.href = appScheme;
-    } catch (e) {}
-
     window.setTimeout(function () {
       document.removeEventListener("visibilitychange", onHidden);
+      window.removeEventListener("pagehide", onHidden);
       if (iframe && iframe.parentNode) {
         iframe.parentNode.removeChild(iframe);
       }
       if (switchedToApp) { return; }
       redirectToDownload();
-    }, 1200);
+    }, 1000);
   }
 
   if (!isMobile) {
