@@ -11,7 +11,7 @@ import {
   resolveContentLanguage,
   resolveContentLanguageFromHeader,
 } from '@/lib/share-i18n';
-import { buildApplinkSocialUrl, buildSharePageUrl } from '@/lib/share-url';
+import { buildApplinkUrl, buildSharePageUrl } from '@/lib/share-url';
 import { getSharedRoutine } from '@/lib/shared-routine-store';
 import { descriptionPlainText } from '@/lib/description-blocks';
 
@@ -60,8 +60,8 @@ export default async function ShareRoutinePage({ params }: PageProps) {
 
   const lang = resolveContentLanguage(row.data.contentLanguage);
   const copy = getSharePageCopy(lang);
-  const socialLandingUrl = buildApplinkSocialUrl();
-  const landingScript = buildShareLandingScript(id, socialLandingUrl);
+  const downloadUrl = buildApplinkUrl();
+  const landingScript = buildShareLandingScript(id, downloadUrl);
 
   return (
     <>
@@ -87,7 +87,7 @@ export default async function ShareRoutinePage({ params }: PageProps) {
               {copy.installPlayStore}
             </a>
             <a
-              href={socialLandingUrl}
+              href={downloadUrl}
               className="text-zinc-500 no-underline hover:underline"
             >
               {copy.storeFallbackLink}
