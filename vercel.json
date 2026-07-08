@@ -1,4 +1,4 @@
 {
   "framework": "nextjs",
-  "installCommand": "rm -rf node_modules/.cache .next && npm install --prefer-online --no-package-lock && rm -rf node_modules/nextjs-share-lib && npm install --prefer-online --force --no-save github:smartcompany/nextjs_share_lib#main && grep -q 'long_output_lite' node_modules/nextjs-share-lib/src/ai/config.ts && grep -q 'gemini-2.5-flash-lite' node_modules/nextjs-share-lib/src/ai/config.ts"
+  "installCommand": "npm run vercel-install"
 }
