@@ -13,6 +13,12 @@ const bodySchema = z.object({
 /** Same string the app shows in the SnackBar (`body['error']`). */
 function clientErrorMessage(error: unknown): string {
   if (isGeminiApiError(error)) {
+    if (error.kind === 'high_demand') {
+      return 'AI is busy right now. Please try again in a moment.';
+    }
+    if (error.isQuotaOrRateLimit) {
+      return 'AI rate limit reached. Please try again later.';
+    }
     return error.message;
   }
   if (error instanceof z.ZodError) {
@@ -25,8 +31,11 @@ function clientErrorMessage(error: unknown): string {
 }
 
 function responseStatus(error: unknown): number {
-  if (isGeminiApiError(error) && error.isQuotaOrRateLimit) {
-    return 429;
+  if (isGeminiApiError(error)) {
+    if (error.kind === 'high_demand' || error.isQuotaOrRateLimit) {
+      return 429;
+    }
+    return 502;
   }
   if (error instanceof z.ZodError) {
     return 502;
