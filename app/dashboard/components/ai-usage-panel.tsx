@@ -116,7 +116,7 @@ export function AiUsagePanel() {
         <div className="mr-auto">
           <h2 className="font-medium text-zinc-800">AI 루틴 사용량</h2>
           <p className="text-xs text-zinc-500 mt-0.5">
-            {data?.model ?? 'gemini-2.5-flash'} · 배포 이후 누적
+            {data?.model ?? 'gemini-2.5-flash-lite'} · 배포 이후 누적
           </p>
         </div>
         <button

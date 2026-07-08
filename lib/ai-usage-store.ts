@@ -7,7 +7,7 @@ import {
 } from '@/lib/gemini-usage';
 
 const TABLE = 'tabata_ai_usage_logs';
-const MODEL = 'gemini-2.5-flash';
+const MODEL = 'gemini-2.5-flash-lite';
 const RECENT_LIMIT = 30;
 const SUMMARY_DAYS = 28;
 

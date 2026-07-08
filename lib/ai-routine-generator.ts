@@ -335,7 +335,7 @@ function logAiRoutinePromptRequest(input: {
 }): void {
   console.info('[ai-routine] Gemini request', {
     provider: 'gemini',
-    preset: 'long_output',
+    preset: 'long_output_lite',
     responseFormat: 'json_object',
     contentLanguage: input.contentLanguage,
     rawUserPromptLength: input.rawUserPrompt.length,
@@ -425,7 +425,7 @@ export async function generateRoutineFromPrompt(input: {
   });
 
   const response = await geminiAi.createChatCompletion({
-    preset: 'long_output',
+    preset: 'long_output_lite',
     response_format: { type: 'json_object' },
     messages,
   });
