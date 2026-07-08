@@ -3,4 +3,5 @@ node_modules
 .env
 .env.local
 .vercel
+package-lock.json
 everyone-s-tabata-firebase-adminsdk-fbsvc-4202cd4d6c.json
