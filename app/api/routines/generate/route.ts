@@ -1,4 +1,5 @@
 import { NextRequest } from 'next/server';
+import { isGeminiApiError } from 'nextjs-share-lib/ai';
 import { z } from 'zod';
 
 import { generateRoutineFromPrompt } from '@/lib/ai-routine-generator';
@@ -8,6 +9,30 @@ const bodySchema = z.object({
   prompt: z.string().min(1).max(4000),
   contentLanguage: z.enum(['en', 'ko', 'zh', 'ja']).optional(),
 });
+
+/** Same string the app shows in the SnackBar (`body['error']`). */
+function clientErrorMessage(error: unknown): string {
+  if (isGeminiApiError(error)) {
+    return error.message;
+  }
+  if (error instanceof z.ZodError) {
+    return 'Generated routine failed validation';
+  }
+  if (error instanceof Error && error.message.trim()) {
+    return error.message;
+  }
+  return 'Failed to generate routine';
+}
+
+function responseStatus(error: unknown): number {
+  if (isGeminiApiError(error) && error.isQuotaOrRateLimit) {
+    return 429;
+  }
+  if (error instanceof z.ZodError) {
+    return 502;
+  }
+  return 500;
+}
 
 export async function OPTIONS(request: NextRequest) {
   return optionsResponse(request);
@@ -19,40 +44,34 @@ export async function POST(request: NextRequest) {
     body = bodySchema.parse(await request.json());
   } catch (error) {
     if (error instanceof z.ZodError) {
-      console.warn('[POST /api/routines/generate] invalid request body', {
-        issues: error.issues,
-      });
+      const message = 'Invalid request';
+      console.error('[POST /api/routines/generate] client error:', message);
       return jsonResponse(
         request,
-        { error: 'Invalid request', details: error.flatten() },
+        { error: message, details: error.flatten() },
         { status: 400 },
       );
     }
-    console.error('[POST /api/routines/generate] failed to read body', error);
-    return jsonResponse(request, { error: 'Invalid request body' }, { status: 400 });
+    const message = 'Invalid request body';
+    console.error('[POST /api/routines/generate] client error:', message);
+    return jsonResponse(request, { error: message }, { status: 400 });
   }
 
   try {
     const profile = await generateRoutineFromPrompt(body);
     return jsonResponse(request, { profile });
   } catch (error) {
-    if (error instanceof z.ZodError) {
-      console.error('[POST /api/routines/generate] invalid model output', {
-        issues: error.issues,
-      });
-      return jsonResponse(
-        request,
-        {
-          error: 'Generated routine failed validation',
-          details: error.flatten(),
-        },
-        { status: 502 },
-      );
-    }
-
-    const message =
-      error instanceof Error ? error.message : 'Failed to generate routine';
-    console.error('[POST /api/routines/generate]', error);
-    return jsonResponse(request, { error: message }, { status: 500 });
+    const message = clientErrorMessage(error);
+    console.error('[POST /api/routines/generate] client error:', message);
+    return jsonResponse(
+      request,
+      {
+        error: message,
+        ...(error instanceof z.ZodError
+          ? { details: error.flatten() }
+          : {}),
+      },
+      { status: responseStatus(error) },
+    );
   }
 }
