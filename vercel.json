@@ -1,4 +1,4 @@
 {
   "framework": "nextjs",
-  "installCommand": "npm install && npm update nextjs-share-lib"
+  "installCommand": "npm install && rm -rf node_modules/nextjs-share-lib && npm install github:smartcompany/nextjs_share_lib#main --no-save"
 }
