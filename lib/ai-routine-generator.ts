@@ -14,6 +14,7 @@ import {
   parseGeminiTokenUsage,
   roundUsd,
 } from '@/lib/gemini-usage';
+import { isRetryableGeminiError } from '@/lib/gemini-errors';
 import {
   type DescriptionBlock,
 } from '@/lib/description-blocks';
@@ -34,6 +35,12 @@ const USER_PROMPT_FILE = 'ai-routine-user.txt';
 const EXAMPLE_JSON_FILE = 'ai-routine-example.json';
 
 const URL_PATTERN = /https?:\/\/[^\s<>"']+/gi;
+const GEMINI_MAX_ATTEMPTS = 3;
+const GEMINI_RETRY_BASE_MS = 800;
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
 
 function extractYouTubeUrls(text: string): string[] {
   const matches = text.match(URL_PATTERN) ?? [];
@@ -425,12 +432,38 @@ export async function generateRoutineFromPrompt(input: {
     userPrompt: userMessageText,
   });
 
-  const response = await geminiAi.createChatCompletion({
-    preset: 'long_output_lite',
-    model: 'gemini-2.5-flash-lite',
-    response_format: { type: 'json_object' },
-    messages,
-  });
+  let response;
+  let lastError: unknown;
+  for (let attempt = 1; attempt <= GEMINI_MAX_ATTEMPTS; attempt++) {
+    try {
+      response = await geminiAi.createChatCompletion({
+        preset: 'long_output_lite',
+        model: 'gemini-2.5-flash-lite',
+        response_format: { type: 'json_object' },
+        messages,
+      });
+      lastError = undefined;
+      break;
+    } catch (error) {
+      lastError = error;
+      if (!isRetryableGeminiError(error) || attempt === GEMINI_MAX_ATTEMPTS) {
+        throw error;
+      }
+      const delayMs = GEMINI_RETRY_BASE_MS * 2 ** (attempt - 1);
+      console.warn('[ai-routine] Gemini retryable error; retrying', {
+        attempt,
+        maxAttempts: GEMINI_MAX_ATTEMPTS,
+        delayMs,
+        message: error instanceof Error ? error.message : String(error),
+      });
+      await sleep(delayMs);
+    }
+  }
+  if (!response) {
+    throw lastError instanceof Error
+      ? lastError
+      : new Error('Gemini generation failed');
+  }
 
   const modelText = getChatCompletionText(response);
   if (!modelText) {

@@ -1,8 +1,11 @@
 import { NextRequest } from 'next/server';
-import { isGeminiApiError } from 'nextjs-share-lib/ai';
 import { z } from 'zod';
 
 import { generateRoutineFromPrompt } from '@/lib/ai-routine-generator';
+import {
+  clientMessageForGeminiError,
+  httpStatusForGeminiError,
+} from '@/lib/gemini-errors';
 import { jsonResponse, optionsResponse } from '@/lib/http';
 
 const bodySchema = z.object({
@@ -12,35 +15,17 @@ const bodySchema = z.object({
 
 /** Same string the app shows in the SnackBar (`body['error']`). */
 function clientErrorMessage(error: unknown): string {
-  if (isGeminiApiError(error)) {
-    if (error.kind === 'high_demand') {
-      return 'AI is busy right now. Please try again in a moment.';
-    }
-    if (error.isQuotaOrRateLimit) {
-      return 'AI rate limit reached. Please try again later.';
-    }
-    return error.message;
-  }
   if (error instanceof z.ZodError) {
     return 'Generated routine failed validation';
   }
-  if (error instanceof Error && error.message.trim()) {
-    return error.message;
-  }
-  return 'Failed to generate routine';
+  return clientMessageForGeminiError(error);
 }
 
 function responseStatus(error: unknown): number {
-  if (isGeminiApiError(error)) {
-    if (error.kind === 'high_demand' || error.isQuotaOrRateLimit) {
-      return 429;
-    }
-    return 502;
-  }
   if (error instanceof z.ZodError) {
     return 502;
   }
-  return 500;
+  return httpStatusForGeminiError(error);
 }
 
 export async function OPTIONS(request: NextRequest) {
