@@ -1,5 +1,4 @@
 import type { Metadata } from 'next';
-import Link from 'next/link';
 import { headers } from 'next/headers';
 
 import {
@@ -55,7 +54,8 @@ export async function generateMetadata({
   searchParams,
 }: PageProps): Promise<Metadata> {
   const { lang } = await searchParams;
-  const copy = getApplinkSocialCopy(await resolvePageLocale(lang));
+  const locale = await resolvePageLocale(lang);
+  const copy = getApplinkSocialCopy(locale);
   return {
     title: copy.pageTitle,
     description: copy.metaDescription,
@@ -64,6 +64,14 @@ export async function generateMetadata({
       title: copy.appTitle,
       description: copy.ogDescription,
       url: 'https://tabata-server.vercel.app/applink/social',
+      locale:
+        locale === 'ko'
+          ? 'ko_KR'
+          : locale === 'ja'
+            ? 'ja_JP'
+            : locale === 'zh'
+              ? 'zh_CN'
+              : 'en_US',
     },
   };
 }
@@ -104,11 +112,6 @@ export default async function AppLinkSocialPage({ searchParams }: PageProps) {
             Google Play
           </a>
         </div>
-        <p className="mt-8 text-xs text-zinc-500">
-          <Link href="/" className="text-orange-400 no-underline hover:underline">
-            {copy.serverHome}
-          </Link>
-        </p>
         <noscript>
           <p>
             <a href={IOS_APP_STORE_WEB} className="text-orange-400">

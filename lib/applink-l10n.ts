@@ -7,7 +7,6 @@ export type ApplinkSocialCopy = {
   ogDescription: string;
   inAppHint: string;
   safariHint: string;
-  serverHome: string;
   noscriptAppStore: string;
 };
 
@@ -21,7 +20,6 @@ const SOCIAL_COPY: Record<ApplinkLocale, ApplinkSocialCopy> = {
     inAppHint:
       'X·카카오 등 앱 안 브라우저는 아래 버튼을 눌러 스토어로 이동해 주세요.',
     safariHint: '일반 Safari에서는 자동으로 스토어가 열릴 수 있습니다.',
-    serverHome: '서버 홈',
     noscriptAppStore: 'App Store로 이동',
   },
   en: {
@@ -33,7 +31,6 @@ const SOCIAL_COPY: Record<ApplinkLocale, ApplinkSocialCopy> = {
     inAppHint:
       'In X, KakaoTalk, and other in-app browsers, tap a button below to open the store.',
     safariHint: 'Safari and Chrome may open the store automatically.',
-    serverHome: 'Server home',
     noscriptAppStore: 'Open in App Store',
   },
   ja: {
@@ -45,23 +42,24 @@ const SOCIAL_COPY: Record<ApplinkLocale, ApplinkSocialCopy> = {
     inAppHint:
       'X・カカオトークなどアプリ内ブラウザでは、下のボタンからストアを開いてください。',
     safariHint: 'Safari などでは自動的にストアが開く場合があります。',
-    serverHome: 'サーバーホーム',
     noscriptAppStore: 'App Storeを開く',
   },
   zh: {
     appTitle: '大家的塔巴塔',
     pageTitle: '大家的塔巴塔 — 下载',
     metaDescription: '从 App Store 或 Google Play 安装大家的塔巴塔。',
-    ogDescription: '运动 routine 间歇计时器应用',
+    ogDescription: '运动间歇计时器应用',
     inAppHint:
       '在 X、KakaoTalk 等应用内浏览器中，请点击下方按钮前往商店。',
     safariHint: '在 Safari 等浏览器中可能会自动打开商店。',
-    serverHome: '服务器首页',
     noscriptAppStore: '打开 App Store',
   },
 };
 
-/** `Accept-Language` 또는 `?lang=` 값을 앱과 동일한 4개 로케일로 정규화. */
+/**
+ * Locale from `?lang=` (highest priority) or `Accept-Language`.
+ * Supported: en (default), ko, ja, zh.
+ */
 export function resolveApplinkLocale(
   acceptLanguage: string | null | undefined,
   queryLang?: string | null,
