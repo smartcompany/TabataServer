@@ -1,3 +1,7 @@
+import type { DescriptionBlock } from './description-blocks';
+
+export type ContentLanguage = 'en' | 'ko' | 'zh' | 'ja';
+
 export type ExercisePhaseKind = 'work' | 'relax';
 
 export type ExercisePhase = {
@@ -24,6 +28,8 @@ export type RoutineProfile = {
   id: string;
   title: string;
   description: string;
+  descriptionBlocks?: DescriptionBlock[];
+  contentLanguage?: ContentLanguage;
   exercises: Exercise[];
 };
 
@@ -118,6 +124,17 @@ export function parseProfile(raw: unknown): RoutineProfile | null {
   const id = typeof obj.id === 'string' ? obj.id : '';
   const title = typeof obj.title === 'string' ? obj.title : '';
   const description = typeof obj.description === 'string' ? obj.description : '';
+  const descriptionBlocks = Array.isArray(obj.descriptionBlocks)
+    ? (obj.descriptionBlocks as DescriptionBlock[])
+    : undefined;
+  const contentLanguageRaw = obj.contentLanguage;
+  const contentLanguage =
+    contentLanguageRaw === 'en' ||
+    contentLanguageRaw === 'ko' ||
+    contentLanguageRaw === 'zh' ||
+    contentLanguageRaw === 'ja'
+      ? contentLanguageRaw
+      : undefined;
   const exercisesRaw = Array.isArray(obj.exercises) ? obj.exercises : [];
   const exercises = exercisesRaw
     .map((exercise, index) => parseExercise(exercise, index))
@@ -128,6 +145,10 @@ export function parseProfile(raw: unknown): RoutineProfile | null {
     id,
     title,
     description,
+    ...(descriptionBlocks && descriptionBlocks.length > 0
+      ? { descriptionBlocks }
+      : {}),
+    ...(contentLanguage ? { contentLanguage } : {}),
     exercises,
   });
 }
@@ -147,5 +168,14 @@ export function normalizeProfile(profile: RoutineProfile): RoutineProfile {
 }
 
 export function profileToJson(profile: RoutineProfile): RoutineProfile {
-  return normalizeProfile(profile);
+  const normalized = normalizeProfile(profile);
+  return {
+    ...normalized,
+    ...(normalized.descriptionBlocks && normalized.descriptionBlocks.length > 0
+      ? { descriptionBlocks: normalized.descriptionBlocks }
+      : {}),
+    ...(normalized.contentLanguage
+      ? { contentLanguage: normalized.contentLanguage }
+      : {}),
+  };
 }

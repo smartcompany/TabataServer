@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 
 import { AiUsagePanel } from '@/app/dashboard/components/ai-usage-panel';
+import { AiRoutineCreateDialog } from '@/app/dashboard/components/ai-routine-create-dialog';
 import { ProfileEditor } from '@/app/dashboard/components/profile-editor';
 import {
   createEmptyProfile,
@@ -39,6 +40,7 @@ export default function DashboardPage() {
   const [editorError, setEditorError] = useState('');
   const [saveLoading, setSaveLoading] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState(false);
+  const [aiDialogOpen, setAiDialogOpen] = useState(false);
 
   const selectedRow = useMemo(
     () => profiles.find((row) => row.summary.id === selectedId) ?? null,
@@ -132,6 +134,18 @@ export default function DashboardPage() {
     setSelectedId('__new__');
     setDraft(createEmptyProfile());
     setEditorError('');
+  };
+
+  const handleAiCreated = (profile: Record<string, unknown>) => {
+    const parsed = parseProfile(profile);
+    if (!parsed) {
+      setEditorError('AI가 만든 프로필 데이터를 읽을 수 없습니다.');
+      return;
+    }
+    setSelectedId('__new__');
+    setDraft(parsed);
+    setEditorError('');
+    setAiDialogOpen(false);
   };
 
   const handleSave = async () => {
@@ -292,13 +306,22 @@ export default function DashboardPage() {
         <section className="rounded-xl border border-zinc-200 bg-white overflow-hidden">
           <div className="flex items-center justify-between px-4 py-3 border-b border-zinc-200">
             <h2 className="font-medium text-zinc-800">프로필 목록</h2>
-            <button
-              type="button"
-              onClick={handleCreate}
-              className="text-sm rounded-lg bg-zinc-800 text-white px-3 py-1.5 hover:bg-zinc-700"
-            >
-              새로 만들기
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setAiDialogOpen(true)}
+                className="text-sm rounded-lg bg-violet-600 text-white px-3 py-1.5 hover:bg-violet-500"
+              >
+                AI로 만들기
+              </button>
+              <button
+                type="button"
+                onClick={handleCreate}
+                className="text-sm rounded-lg bg-zinc-800 text-white px-3 py-1.5 hover:bg-zinc-700"
+              >
+                새로 만들기
+              </button>
+            </div>
           </div>
           <ul className="divide-y divide-zinc-100 max-h-[70vh] overflow-y-auto">
             {profiles.length === 0 ? (
@@ -372,6 +395,12 @@ export default function DashboardPage() {
         </section>
         </div>
       </main>
+
+      <AiRoutineCreateDialog
+        open={aiDialogOpen}
+        onClose={() => setAiDialogOpen(false)}
+        onCreated={handleAiCreated}
+      />
     </div>
   );
 }
