@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from 'react';
 
 import { AiUsagePanel } from '@/app/dashboard/components/ai-usage-panel';
 import { AiRoutineCreateDialog } from '@/app/dashboard/components/ai-routine-create-dialog';
+import { ProductAnalyticsPanel } from '@/app/dashboard/components/product-analytics-panel';
 import { ProfileEditor } from '@/app/dashboard/components/profile-editor';
 import {
   createEmptyProfile,
@@ -300,6 +301,7 @@ export default function DashboardPage() {
       </header>
 
       <main className="p-4 max-w-7xl mx-auto space-y-4">
+        <ProductAnalyticsPanel />
         <AiUsagePanel />
 
         <div className="grid gap-4 lg:grid-cols-[280px_1fr]">

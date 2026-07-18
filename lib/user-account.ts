@@ -68,6 +68,17 @@ export async function deleteUserAccount(
     throw new Error(`Failed to delete user profiles: ${profileError.message}`);
   }
 
+  const { error: analyticsError } = await supabase
+    .from('tabata_product_events')
+    .delete()
+    .eq('user_id', userId);
+  if (analyticsError) {
+    console.error(
+      `Failed to delete analytics for user ${userId}:`,
+      analyticsError,
+    );
+  }
+
   await deleteUserStorage(supabase, userId);
 
   const { count: userCount, error: userError } = await supabase
