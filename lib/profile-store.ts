@@ -16,6 +16,7 @@ const DATA_DIR = path.join(process.cwd(), 'data', 'profiles');
 
 /** Bundled default profiles (display order). Rotator cuff is always last. */
 const DEFAULT_PROFILE_ORDER = [
+  'first-try',
   'tabata-basic',
   'full-body-warmup',
   'core-strength',

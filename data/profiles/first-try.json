@@ -1,0 +1,36 @@
+{
+  "schemaVersion": 1,
+  "contentLanguage": "ko",
+  "id": "first-try",
+  "title": "첫 운동 체험",
+  "description": "2분 안에 끝나는 짧은 타바타. 처음 시작하기에 좋아요.",
+  "exercises": [
+    {
+      "id": "a2000010-0000-4000-8000-000000000001",
+      "name": "스쿼트",
+      "instruction": "발을 어깨 너비로 벌리고 앉았다가 일어섭니다. 처음엔 천천히 해도 됩니다.",
+      "order": 0,
+      "prepare": {
+        "durationSec": 8
+      },
+      "phases": [
+        {
+          "id": "b2000010-0000-4000-8000-000000000001",
+          "kind": "work",
+          "label": "스쿼트",
+          "durationSec": 20,
+          "order": 0
+        },
+        {
+          "id": "b2000010-0000-4000-8000-000000000002",
+          "kind": "relax",
+          "label": "휴식",
+          "durationSec": 10,
+          "order": 1
+        }
+      ],
+      "reps": 4,
+      "sets": 1
+    }
+  ]
+}

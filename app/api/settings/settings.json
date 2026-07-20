@@ -1,9 +1,9 @@
 {
   "onboarding_recommended_routine_ids": [
-    "full-body-warmup",
-    "core-strength",
-    "lower-body-tabata",
-    "upper-body-warmup"
+    "first-try",
+    "tabata-basic",
+    "upper-body-warmup",
+    "full-body-warmup"
   ],
   "ios_ads": [{ "initial_ad": 5 },{ "rewarded_ad": 1 }],
   "android_ads": [{ "initial_ad": 5 },{ "rewarded_ad": 1 }],
