@@ -203,7 +203,7 @@ function sanitizeExercise(
     instruction: String(exercise.instruction ?? ''),
     order: toInt(exercise.order, exerciseIndex, 0),
     prepare: {
-      durationSec: toInt(prepareRecord.durationSec, 10, 0),
+      durationSec: toInt(prepareRecord.durationSec, 10, 10),
     },
     reps: toInt(exercise.reps, 8, 1),
     sets: toInt(exercise.sets, 1, 1),

@@ -10,7 +10,7 @@
 - JSON 키 이름, kind 값("work", "relax"), timingMode 값 등 **기술 필드**는 영어 그대로 유지하세요.
 - exercises: 최소 1개 이상.
 - 각 exercise 필수 필드: name, instruction, order, prepare, phases, reps, sets.
-- prepare: { "durationSec": number >= 0 } — 운동 시작 전 준비 시간(초).
+- prepare: { "durationSec": number >= 10 } — 운동 시작 전 준비 시간(초). 앱이 이 구간에 instruction을 음성으로 읽어 주므로 **최소 10초** (짧으면 설명이 잘림).
 - phases: 최소 1개. 각 phase 필수: kind, label, durationSec, order.
 - phase kind: "work"(운동) 또는 "relax"(휴식).
 - phase order: exercise 내 0부터 시작.

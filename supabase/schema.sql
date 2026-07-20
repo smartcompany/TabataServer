@@ -118,6 +118,31 @@ create policy "tabata_product_events_deny_anon"
   using (false)
   with check (false);
 
+-- One-time product entitlements (e.g. onboarding AI ad waiver).
+-- Preferred storage: this table. Until migrated, the server falls back to
+-- `tabata_product_events` rows with event_name = entitlement_granted.
+create table if not exists tabata_entitlement_grants (
+  install_id uuid not null,
+  entitlement text not null,
+  user_id text,
+  granted_at timestamptz not null default now(),
+  primary key (install_id, entitlement)
+);
+
+create unique index if not exists tabata_entitlement_grants_user_entitlement_idx
+  on tabata_entitlement_grants (user_id, entitlement)
+  where user_id is not null;
+
+alter table tabata_entitlement_grants enable row level security;
+
+drop policy if exists "tabata_entitlement_grants_deny_anon" on tabata_entitlement_grants;
+create policy "tabata_entitlement_grants_deny_anon"
+  on tabata_entitlement_grants
+  for all
+  to anon, authenticated
+  using (false)
+  with check (false);
+
 -- Ephemeral routine snapshots for HTTPS share links (/share/{id})
 create table if not exists tabata_shared_routines (
   id uuid primary key,

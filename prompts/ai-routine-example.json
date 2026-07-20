@@ -32,7 +32,7 @@
       "instruction": "어깨에 수건을 끼고 겨드랑이에 고정한 뒤, 팔꿈치를 좌우로 움직입니다.",
       "order": 1,
       "prepare": {
-        "durationSec": 5
+        "durationSec": 10
       },
       "phases": [
         {
