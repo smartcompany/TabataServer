@@ -4,7 +4,11 @@
     "target": {
       "namespace": "android_app",
       "package_name": "com.smartcompany.tabata",
-      "sha256_cert_fingerprints": []
+      "sha256_cert_fingerprints": [
+        "E1:9C:0F:6E:71:22:76:DE:29:B9:15:50:62:F8:AB:CD:66:E2:7D:E5:CB:97:8C:33:EB:99:9A:56:17:7E:8E:09",
+        "82:E3:AA:87:F7:1E:D0:F2:EA:A2:AC:31:F3:AF:6C:7E:1A:A4:A1:C3:0F:CE:5E:1B:97:CB:14:68:F6:D2:37:63",
+        "D9:15:FD:1C:A4:51:0E:C6:CF:01:EE:A7:04:6F:88:BC:09:FE:74:C6:85:A5:84:74:04:35:C3:E8:C8:66:D1:95"
+      ]
     }
   }
 ]
