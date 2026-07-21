@@ -3,7 +3,7 @@
   "contentLanguage": "ko",
   "id": "first-try",
   "title": "첫 운동 체험",
-  "description": "2분 안에 끝나는 짧은 타바타. 처음 시작하기에 좋아요.",
+  "description": "1분 안에 끝나는 짧은 타바타. 처음 시작하기에 좋아요.",
   "exercises": [
     {
       "id": "a2000010-0000-4000-8000-000000000001",
@@ -18,7 +18,7 @@
           "id": "b2000010-0000-4000-8000-000000000001",
           "kind": "work",
           "label": "스쿼트",
-          "durationSec": 20,
+          "durationSec": 15,
           "order": 0
         },
         {
@@ -29,7 +29,7 @@
           "order": 1
         }
       ],
-      "reps": 4,
+      "reps": 2,
       "sets": 1
     }
   ]
