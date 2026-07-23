@@ -33,6 +33,8 @@ type Journey = {
 type DashboardData = {
   configured: boolean;
   periodDays: number;
+  eventRowCount?: number;
+  truncated?: boolean;
   summary: {
     activeInstalls: number;
     firstOpens: number;
@@ -168,6 +170,9 @@ export function ProductAnalyticsPanel() {
           <h2 className="font-semibold text-zinc-900">사용자 여정 분석</h2>
           <p className="mt-0.5 text-xs text-zinc-500">
             익명 설치 ID 기준 · 최초 실행은 실제 설치의 대리 지표
+            {data?.eventRowCount != null
+              ? ` · 이벤트 ${data.eventRowCount.toLocaleString('ko-KR')}건`
+              : ''}
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -199,6 +204,12 @@ export function ProductAnalyticsPanel() {
       )}
       {!loading && data?.configured && (
         <div className="mt-4 space-y-4">
+          {data.truncated && (
+            <p className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800">
+              기간 내 이벤트가 많아 일부만 집계됐습니다. 숫자가 낮게 나올 수
+              있습니다.
+            </p>
+          )}
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
             <MetricCard label="활성 설치" value={data.summary.activeInstalls} />
             <MetricCard label="신규 최초 실행" value={data.summary.firstOpens} />

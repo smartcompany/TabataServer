@@ -27,7 +27,7 @@
         {
           "id": "b2000005-0000-4000-8000-000000000002",
           "kind": "relax",
-          "label": "이완",
+          "label": "휴식",
           "durationSec": 5,
           "order": 1,
           "timingMode": "count",

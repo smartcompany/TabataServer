@@ -1,7 +1,10 @@
 import { getSupabaseAdmin } from '@/lib/supabase-admin';
 
 const TABLE = 'tabata_product_events';
-const RAW_LIMIT = 10000;
+/** Supabase default max rows per request; page until the period is fully loaded. */
+const PAGE_SIZE = 1000;
+/** Safety cap so a runaway table cannot hang the dashboard. */
+const MAX_ROWS = 100_000;
 
 export const PRODUCT_EVENT_NAMES = [
   'first_open',
@@ -144,6 +147,8 @@ export type AnalyticsJourney = {
 export type ProductAnalyticsDashboardData = {
   configured: boolean;
   periodDays: number;
+  eventRowCount: number;
+  truncated: boolean;
   summary: {
     activeInstalls: number;
     firstOpens: number;
@@ -210,6 +215,35 @@ function buildFunnel(
   });
 }
 
+async function fetchPeriodRows(
+  supabase: NonNullable<ReturnType<typeof getSupabaseAdmin>>,
+  sinceIso: string,
+): Promise<{ rows: DbRow[]; truncated: boolean }> {
+  const rows: DbRow[] = [];
+  let from = 0;
+
+  while (from < MAX_ROWS) {
+    const to = Math.min(from + PAGE_SIZE - 1, MAX_ROWS - 1);
+    const { data, error } = await supabase
+      .from(TABLE)
+      .select('*')
+      .gte('occurred_at', sinceIso)
+      .order('occurred_at', { ascending: true })
+      .order('event_id', { ascending: true })
+      .range(from, to);
+    if (error) throw new Error(`Failed to load analytics: ${error.message}`);
+
+    const page = (data ?? []) as DbRow[];
+    rows.push(...page);
+    if (page.length < PAGE_SIZE) {
+      return { rows, truncated: false };
+    }
+    from += PAGE_SIZE;
+  }
+
+  return { rows, truncated: true };
+}
+
 export async function getProductAnalyticsDashboardData(
   periodDays = 28,
 ): Promise<ProductAnalyticsDashboardData> {
@@ -217,6 +251,8 @@ export async function getProductAnalyticsDashboardData(
   const empty: ProductAnalyticsDashboardData = {
     configured: Boolean(supabase),
     periodDays,
+    eventRowCount: 0,
+    truncated: false,
     summary: {
       activeInstalls: 0,
       firstOpens: 0,
@@ -241,15 +277,11 @@ export async function getProductAnalyticsDashboardData(
 
   const since = new Date();
   since.setUTCDate(since.getUTCDate() - periodDays);
-  const { data, error } = await supabase
-    .from(TABLE)
-    .select('*')
-    .gte('occurred_at', since.toISOString())
-    .order('occurred_at', { ascending: false })
-    .limit(RAW_LIMIT);
-  if (error) throw new Error(`Failed to load analytics: ${error.message}`);
+  const { rows, truncated } = await fetchPeriodRows(
+    supabase,
+    since.toISOString(),
+  );
 
-  const rows = (data ?? []) as DbRow[];
   const rowsByInstall = new Map<string, DbRow[]>();
   const eventCounts: Record<string, number> = {};
   for (const row of rows) {
@@ -312,6 +344,8 @@ export async function getProductAnalyticsDashboardData(
   return {
     configured: true,
     periodDays,
+    eventRowCount: rows.length,
+    truncated,
     summary: {
       activeInstalls: journeys.length,
       firstOpens: uniqueWith('first_open'),

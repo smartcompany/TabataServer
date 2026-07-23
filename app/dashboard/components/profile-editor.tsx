@@ -284,7 +284,7 @@ export function ProfileEditor({ profile, isNew, onChange }: ProfileEditorProps) 
                   onClick={() => addPhase(exerciseIndex, 'relax')}
                   className="text-xs rounded-lg bg-emerald-50 text-emerald-700 px-2 py-1 border border-emerald-100"
                 >
-                  + 이완
+                  + 휴식
                 </button>
               </div>
 
@@ -305,7 +305,7 @@ export function ProfileEditor({ profile, isNew, onChange }: ProfileEditorProps) 
                       className={inputClass}
                     >
                       <option value="work">운동</option>
-                      <option value="relax">이완</option>
+                      <option value="relax">휴식</option>
                     </select>
                   </div>
                   <TextField

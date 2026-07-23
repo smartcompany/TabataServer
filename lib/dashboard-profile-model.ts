@@ -41,7 +41,7 @@ export function createPhase(kind: ExercisePhaseKind, order: number): ExercisePha
   return {
     id: newId(),
     kind,
-    label: kind === 'work' ? '운동' : '이완',
+    label: kind === 'work' ? '운동' : '휴식',
     durationSec: 8,
     order,
   };
