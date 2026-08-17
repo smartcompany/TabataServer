@@ -47,6 +47,7 @@ export const PRODUCT_EVENT_NAMES = [
   'workout_opened',
   'workout_started',
   'workout_completed',
+  'workout_complete_shared',
   'workout_abandoned',
   'schedule_opened',
   'schedule_created',
