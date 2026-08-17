@@ -1,13 +1,15 @@
+import { geminiAi } from '@/lib/ai-client';
+import { estimateRoutineCostUsd, GEMINI_ROUTINE_PRESET } from '@/lib/ai-gemini';
 import { getSupabaseAdmin } from '@/lib/supabase-admin';
 import {
-  estimateGeminiFlashCostUsd,
   parseGeminiTokenUsage,
   roundUsd,
   type GeminiTokenUsage,
 } from '@/lib/gemini-usage';
 
 const TABLE = 'tabata_ai_usage_logs';
-const MODEL = 'gemini-2.5-flash-lite';
+const MODEL = geminiAi.getChatPresetConfig(GEMINI_ROUTINE_PRESET).model;
+const PRICING_NOTE = `무료 티어는 $0입니다. 예상 비용은 ${MODEL} 유료 standard 기준입니다.`;
 const RECENT_LIMIT = 30;
 const SUMMARY_DAYS = 28;
 
@@ -144,6 +146,7 @@ export async function recordAiRoutineUsage(input: {
   routineId: string;
   routineTitle: string;
   exerciseCount: number;
+  model: string;
   usage?: Record<string, unknown>;
 }): Promise<void> {
   const supabase = getSupabaseAdmin();
@@ -158,10 +161,10 @@ export async function recordAiRoutineUsage(input: {
     thoughtsTokenCount: 0,
     totalTokenCount: 0,
   };
-  const cost = estimateGeminiFlashCostUsd(tokenUsage);
+  const cost = estimateRoutineCostUsd(tokenUsage);
 
   const { error } = await supabase.from(TABLE).insert({
-    model: MODEL,
+    model: input.model,
     content_language: input.contentLanguage,
     prompt_length: input.promptLength,
     routine_id: input.routineId,
@@ -187,8 +190,7 @@ export async function getAiUsageDashboardData(): Promise<AiUsageDashboardData> {
     return {
       configured: false,
       model: MODEL,
-      pricingNote:
-        '무료 티어는 $0입니다. 예상 비용은 Gemini 2.5 Flash 유료 standard 기준입니다.',
+      pricingNote: PRICING_NOTE,
       today: emptySummary(),
       last28Days: emptySummary(),
       recent: [],
@@ -215,8 +217,7 @@ export async function getAiUsageDashboardData(): Promise<AiUsageDashboardData> {
   return {
     configured: true,
     model: MODEL,
-    pricingNote:
-      '무료 티어는 $0입니다. 예상 비용은 Gemini 2.5 Flash 유료 standard 기준입니다.',
+    pricingNote: PRICING_NOTE,
     today: roundSummary(summarizeRows(todayRows)),
     last28Days: roundSummary(summarizeRows(rows)),
     recent: rows.slice(0, RECENT_LIMIT),

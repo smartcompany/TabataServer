@@ -52,7 +52,7 @@ create policy "tabata_users_deny_anon"
 create table if not exists tabata_ai_usage_logs (
   id uuid primary key default gen_random_uuid(),
   created_at timestamptz not null default now(),
-  model text not null default 'gemini-2.5-flash',
+  model text not null,
   content_language text,
   prompt_length int not null default 0,
   routine_id text,
@@ -66,6 +66,9 @@ create table if not exists tabata_ai_usage_logs (
   estimated_output_usd numeric(12, 6) not null default 0,
   estimated_total_usd numeric(12, 6) not null default 0
 );
+
+alter table if exists tabata_ai_usage_logs
+  alter column model drop default;
 
 create index if not exists tabata_ai_usage_logs_created_at_idx
   on tabata_ai_usage_logs (created_at desc);

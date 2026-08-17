@@ -1,21 +1,8 @@
-/** Gemini 2.5 Flash-Lite paid standard tier (USD per 1M tokens). */
-export const GEMINI_25_FLASH_LITE_INPUT_USD_PER_M = 0.1;
-export const GEMINI_25_FLASH_LITE_OUTPUT_USD_PER_M = 0.4;
-
 export type GeminiTokenUsage = {
   promptTokenCount: number;
   candidatesTokenCount: number;
   thoughtsTokenCount: number;
   totalTokenCount: number;
-};
-
-export type GeminiCostEstimateUsd = {
-  inputUsd: number;
-  outputUsd: number;
-  totalUsd: number;
-  pricingModel: 'gemini-2.5-flash-lite';
-  pricingTier: 'paid-standard';
-  note: string;
 };
 
 function toUsageInt(value: unknown): number {
@@ -54,29 +41,6 @@ export function parseGeminiTokenUsage(
     candidatesTokenCount,
     thoughtsTokenCount,
     totalTokenCount,
-  };
-}
-
-export function estimateGeminiFlashCostUsd(
-  usage: GeminiTokenUsage,
-): GeminiCostEstimateUsd {
-  const outputTokenCount =
-    usage.candidatesTokenCount + usage.thoughtsTokenCount;
-  const inputUsd =
-    (usage.promptTokenCount / 1_000_000) *
-    GEMINI_25_FLASH_LITE_INPUT_USD_PER_M;
-  const outputUsd =
-    (outputTokenCount / 1_000_000) *
-    GEMINI_25_FLASH_LITE_OUTPUT_USD_PER_M;
-
-  return {
-    inputUsd,
-    outputUsd,
-    totalUsd: inputUsd + outputUsd,
-    pricingModel: 'gemini-2.5-flash-lite',
-    pricingTier: 'paid-standard',
-    note:
-      'Free tier is $0. Estimate uses Gemini 2.5 Flash-Lite paid standard pricing.',
   };
 }
 

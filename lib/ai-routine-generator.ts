@@ -8,9 +8,9 @@ import {
 import { z } from 'zod';
 
 import { geminiAi } from '@/lib/ai-client';
+import { estimateRoutineCostUsd, GEMINI_ROUTINE_PRESET } from '@/lib/ai-gemini';
 import { recordAiRoutineUsage } from '@/lib/ai-usage-store';
 import {
-  estimateGeminiFlashCostUsd,
   parseGeminiTokenUsage,
   roundUsd,
 } from '@/lib/gemini-usage';
@@ -341,9 +341,7 @@ function logAiRoutinePromptRequest(input: {
   userPrompt: string;
 }): void {
   console.info('[ai-routine] Gemini request', {
-    provider: 'gemini',
-    preset: 'long_output_lite',
-    model: 'gemini-2.5-flash-lite',
+    preset: GEMINI_ROUTINE_PRESET,
     responseFormat: 'json_object',
     contentLanguage: input.contentLanguage,
     rawUserPromptLength: input.rawUserPrompt.length,
@@ -363,7 +361,7 @@ function logAiRoutinePromptResponse(input: {
 }): void {
   const tokenUsage = parseGeminiTokenUsage(input.usage);
   const estimatedCostUsd = tokenUsage
-    ? estimateGeminiFlashCostUsd(tokenUsage)
+    ? estimateRoutineCostUsd(tokenUsage)
     : undefined;
 
   console.info('[ai-routine] Gemini response', {
@@ -376,12 +374,10 @@ function logAiRoutinePromptResponse(input: {
           tokenUsage,
           estimatedCostUsd: estimatedCostUsd
             ? {
+                model: estimatedCostUsd.model,
                 inputUsd: roundUsd(estimatedCostUsd.inputUsd),
                 outputUsd: roundUsd(estimatedCostUsd.outputUsd),
                 totalUsd: roundUsd(estimatedCostUsd.totalUsd),
-                pricingModel: estimatedCostUsd.pricingModel,
-                pricingTier: estimatedCostUsd.pricingTier,
-                note: estimatedCostUsd.note,
               }
             : undefined,
         }
@@ -437,8 +433,7 @@ export async function generateRoutineFromPrompt(input: {
   for (let attempt = 1; attempt <= GEMINI_MAX_ATTEMPTS; attempt++) {
     try {
       response = await geminiAi.createChatCompletion({
-        preset: 'long_output_lite',
-        model: 'gemini-2.5-flash-lite',
+        preset: GEMINI_ROUTINE_PRESET,
         response_format: { type: 'json_object' },
         messages,
       });
@@ -491,6 +486,9 @@ export async function generateRoutineFromPrompt(input: {
     youtubeUrls,
   );
 
+  const model =
+    response.model ?? geminiAi.getChatPresetConfig(GEMINI_ROUTINE_PRESET).model;
+
   logAiRoutinePromptResponse({
     modelText,
     profile: result,
@@ -503,6 +501,7 @@ export async function generateRoutineFromPrompt(input: {
     routineId: result.id,
     routineTitle: result.title,
     exerciseCount: result.exercises.length,
+    model,
     usage: response.usage,
   });
 
