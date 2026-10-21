@@ -8,4 +8,5 @@
 {{YOUTUBE_CONTEXT}}
 
 평문이면 요청 의도에 맞는 루틴을 구성하세요.
+횟수로 하는 동작(스쿼트·푸시업 등)은 work에 timingMode "count"를 쓰고, 초로만 퉁치지 마세요. 휴식(relax)은 duration만 사용하세요.
 루틴 JSON 객체만 반환하세요.

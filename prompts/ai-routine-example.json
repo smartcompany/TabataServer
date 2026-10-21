@@ -1,12 +1,39 @@
 {
   "schemaVersion": 1,
   "title": "하체·어깨 혼합 루틴",
-  "description": "타바타(시간)와 횟수 기반 재활 동작 예시",
+  "description": "횟수(count) 스쿼트와 시간(duration) 인터벌 예시",
   "exercises": [
+    {
+      "name": "벽 스쿼트",
+      "instruction": "벽에 등을 기대고 앉았다 일어서기를 일정한 속도로 반복합니다.",
+      "order": 0,
+      "prepare": {
+        "durationSec": 10
+      },
+      "phases": [
+        {
+          "kind": "work",
+          "label": "스쿼트",
+          "durationSec": 3,
+          "order": 0,
+          "timingMode": "count",
+          "countReps": 30,
+          "secondsPerRep": 3
+        },
+        {
+          "kind": "relax",
+          "label": "휴식",
+          "durationSec": 30,
+          "order": 1
+        }
+      ],
+      "reps": 1,
+      "sets": 3
+    },
     {
       "name": "점프 스쿼트",
       "instruction": "발을 어깨 너비로 벌리고 앉았다가 가볍게 점프하며 일어섭니다.",
-      "order": 0,
+      "order": 1,
       "prepare": {
         "durationSec": 10
       },
@@ -30,7 +57,7 @@
     {
       "name": "팽귄 운동",
       "instruction": "어깨에 수건을 끼고 겨드랑이에 고정한 뒤, 팔꿈치를 좌우로 움직입니다.",
-      "order": 1,
+      "order": 2,
       "prepare": {
         "durationSec": 10
       },
@@ -46,12 +73,9 @@
         },
         {
           "kind": "relax",
-          "label": "팔을 오므리기",
-          "durationSec": 8,
-          "order": 1,
-          "timingMode": "count",
-          "countReps": 10,
-          "secondsPerRep": 8
+          "label": "휴식",
+          "durationSec": 15,
+          "order": 1
         }
       ],
       "reps": 1,

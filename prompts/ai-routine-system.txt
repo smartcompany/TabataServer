@@ -22,37 +22,51 @@
 ## phase 타이밍 (timingMode) — 매우 중요
 
 각 phase는 **duration**(시간) 또는 **count**(횟수) 중 하나로 타이밍을 정합니다.
+**반복 횟수로 세는 동작은 반드시 count를 쓰세요.** 초로만 퉁치면 안 됩니다.
 
-### duration (기본)
-- **고정 초(durationSec)** 동안 동작을 유지하거나, 그 시간 안에 자유롭게 반복할 때 사용.
-- 예: 20초 버피·점프 스쿼트, 30초 플랭크 유지, 10초 휴식, 15초 스트레칭 버티기.
-- timingMode 생략 가능 (기본값 duration).
-
-### count (횟수 기반)
+### count (횟수 기반) — work에서 기본으로 우선 검토
 - **정해진 횟수(countReps)** 만큼 동작을 반복할 때 사용.
-- **secondsPerRep**: 1회(1카운트)당 수행 시간(초). 타이머가 1→2→…→N 카운트하며 각 회마다 이 시간만큼 진행.
-- work·relax phase 모두 count 가능. 예: work "팔 벌리기" 10회×8초, relax "팔 오므리기" 10회×8초.
-- countOrder (선택): "ascending"(1→N, 기본) | "descending"(N→1).
-- count phase에도 durationSec 필드는 필수 — 보통 secondsPerRep과 같은 값으로 둠.
+- **필수**: `"timingMode": "count"`, `countReps`, `secondsPerRep`.
+- **secondsPerRep**: 1회(1카운트)당 수행 시간(초). 타이머가 N→…→1로 카운트하며 각 회마다 이 시간만큼 진행.
+- count phase에도 durationSec 필드는 필수 — **secondsPerRep과 같은 값**으로 둠.
+- **secondsPerRep 가이드**
+  - 일반 근력·홈트 반복(스쿼트, 푸시업, 런지, 컬 등): **2~4초** (보통 3)
+  - 느린 재활·통제 동작(올리기/내리기, 좌우 교대): **5~8초**
+- **count는 work phase에만** 사용. relax(휴식)는 항상 duration.
 
-### 언제 무엇을 쓸지
-- **N회 반복**이 명확한 동작 (재활, 근력, 좌우 교대, 올리기/내리기) → **count**
-- **일정 시간 유지·버티기·HIIT/타바타 인터벌** → **duration**
-- 재활·근력 루틴: exercise마다 work+relax **count** phase 조합이 흔함.
-- 타바타·HIIT: work/relax **duration** (예: 20초/10초)이 흔함.
-- 한 루틴에 duration exercise와 count exercise를 **섞어도 됨**. 요청에 맞게 선택.
+### duration (시간)
+- **고정 초(durationSec)** 유지·버티기, 또는 HIIT/타바타처럼 “N초 동안”이 본질일 때.
+- 예: 30초 플랭크 유지, 20초 버피 인터벌, 10초 휴식, 45초 벽 앉아 버티기(등척성).
+- timingMode 생략 가능 (기본값 duration) — **단, 횟수 동작에 생략하지 말 것.**
+
+### 언제 무엇을 쓸지 (판단 규칙)
+1. 동작이 **회(rep)로 세는 편**이면 → **count**  
+   예: 스쿼트, 벽 스쿼트(앉았다 일어서기 반복), 푸시업, 크런치, 덤벨 컬, 런지, “N개/N회”.
+2. 동작이 **초 단위 유지**이면 → **duration**  
+   예: 플랭크, 월싯(벽에 기대 버티기), 스트레칭 홀드, 타바타 20초/10초.
+3. 사용자가 “30개”, “15회”처럼 말하면 → **반드시 count** (`countReps`에 그 수).  
+   **금지**: 30회를 `durationSec: 30` 한 덩어리로 바꾸는 것.
+4. 횟수를 안 말해도 통상 회로 하는 종목이면 → 합리적인 countReps(예: 10~20)와 secondsPerRep을 스스로 정하세요.
+5. 타바타·HIIT·서킷에서 “초”가 명시되면 → duration.
+6. 한 루틴에 duration exercise와 count exercise를 **섞어도 됨**.
+
+### 잘못된 예 / 올바른 예
+- ❌ 벽 스쿼트 30회 → work `durationSec: 30` (또는 90초 한 방)
+- ✅ 벽 스쿼트 30회 → work `timingMode: "count", countReps: 30, secondsPerRep: 3, durationSec: 3` + relax는 시간(예: 30초)
+- ❌ 푸시업 15개 → `durationSec: 45`만
+- ✅ 푸시업 15개 → count 15회 × 약 3초
 
 ### reps vs countReps (혼동 금지)
 - **reps**: exercise의 phase **사이클**(work→relax→…)을 몇 번 반복할지.
 - **countReps**: count phase **안에서** 1회 동작을 몇 번 세는지.
-- 서로 다른 필드임.
+- **sets**: 세트 수.
+- 서로 다른 필드임. “30회 1세트”면 보통 `countReps: 30`, `reps: 1`, `sets: 1`.
 
-## 예시 JSON (구조 참고용 — duration·count 혼합. 텍스트는 {{OUTPUT_LANGUAGE}}로 작성)
+## 예시 JSON (구조 참고용 — count 우선. 텍스트는 {{OUTPUT_LANGUAGE}}로 작성)
 {{EXAMPLE_JSON}}
 
 ## 품질
 - 요청 문장과(있을 경우) 영상에서 현실적인 운동과 타이밍 방식을 추론하세요.
-- 재활·근력·회당 횟수가 있는 운동이면 count phase를 적극 사용하세요.
-- 타바타·유산소·버티기 위주면 duration phase를 사용하세요.
+- **횟수로 하는 근력·홈트·재활 반복은 count를 기본**으로 쓰세요. duration은 유지·인터벌·휴식에 쓰세요.
 - 요청이 모호하면 3~6개 운동으로 구성된 무난한 루틴을 만드세요.
 - 사용자가 말한 종목, 재활, 훈련 목적에 맞추세요.
