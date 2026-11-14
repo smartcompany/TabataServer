@@ -2,6 +2,7 @@
   "schemaVersion": 1,
   "title": "하체·어깨 혼합 루틴",
   "description": "횟수(count) 스쿼트와 시간(duration) 인터벌 예시",
+  "healthActivityType": "high_intensity_interval_training",
   "exercises": [
     {
       "name": "벽 스쿼트",

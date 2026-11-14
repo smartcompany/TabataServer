@@ -23,6 +23,13 @@ export type Exercise = {
   sets: number;
 };
 
+export type HealthActivityType =
+  | 'functional_strength_training'
+  | 'flexibility'
+  | 'high_intensity_interval_training'
+  | 'traditional_strength_training'
+  | 'other';
+
 export type RoutineProfile = {
   schemaVersion: 1;
   id: string;
@@ -30,8 +37,17 @@ export type RoutineProfile = {
   description: string;
   descriptionBlocks?: DescriptionBlock[];
   contentLanguage?: ContentLanguage;
+  healthActivityType?: HealthActivityType;
   exercises: Exercise[];
 };
+
+const HEALTH_ACTIVITY_TYPES = new Set<HealthActivityType>([
+  'functional_strength_training',
+  'flexibility',
+  'high_intensity_interval_training',
+  'traditional_strength_training',
+  'other',
+]);
 
 export function newId(): string {
   return crypto.randomUUID();
@@ -135,6 +151,12 @@ export function parseProfile(raw: unknown): RoutineProfile | null {
     contentLanguageRaw === 'ja'
       ? contentLanguageRaw
       : undefined;
+  const healthActivityTypeRaw = obj.healthActivityType;
+  const healthActivityType =
+    typeof healthActivityTypeRaw === 'string' &&
+    HEALTH_ACTIVITY_TYPES.has(healthActivityTypeRaw as HealthActivityType)
+      ? (healthActivityTypeRaw as HealthActivityType)
+      : undefined;
   const exercisesRaw = Array.isArray(obj.exercises) ? obj.exercises : [];
   const exercises = exercisesRaw
     .map((exercise, index) => parseExercise(exercise, index))
@@ -149,6 +171,7 @@ export function parseProfile(raw: unknown): RoutineProfile | null {
       ? { descriptionBlocks }
       : {}),
     ...(contentLanguage ? { contentLanguage } : {}),
+    ...(healthActivityType ? { healthActivityType } : {}),
     exercises,
   });
 }
@@ -176,6 +199,9 @@ export function profileToJson(profile: RoutineProfile): RoutineProfile {
       : {}),
     ...(normalized.contentLanguage
       ? { contentLanguage: normalized.contentLanguage }
+      : {}),
+    ...(normalized.healthActivityType
+      ? { healthActivityType: normalized.healthActivityType }
       : {}),
   };
 }

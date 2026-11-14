@@ -39,6 +39,19 @@ export const DEFAULT_CONTENT_LANGUAGE = 'ko';
 
 const contentLanguageSchema = z.enum(['en', 'ko', 'zh', 'ja']);
 
+/** Apple Health / Health Connect workout type ids used by the mobile app. */
+export const HEALTH_ACTIVITY_TYPE_IDS = [
+  'functional_strength_training',
+  'flexibility',
+  'high_intensity_interval_training',
+  'traditional_strength_training',
+  'other',
+] as const;
+
+export const healthActivityTypeSchema = z.enum(HEALTH_ACTIVITY_TYPE_IDS);
+
+export type HealthActivityType = z.infer<typeof healthActivityTypeSchema>;
+
 export const routineProfileSchema = z.object({
   schemaVersion: z.literal(1),
   id: z
@@ -53,6 +66,8 @@ export const routineProfileSchema = z.object({
   description: z.string(),
   descriptionBlocks: descriptionBlocksSchema.optional(),
   contentLanguage: contentLanguageSchema.optional(),
+  /** When set, the app saves completed workouts to the health app as this type. */
+  healthActivityType: healthActivityTypeSchema.optional(),
   exercises: z.array(exerciseSchema).min(1),
 });
 
@@ -112,6 +127,9 @@ export function normalizeRoutineProfile(raw: unknown): RoutineProfile {
     contentLanguage,
     description,
     descriptionBlocks: blocks.length > 0 ? blocks : undefined,
+    ...(parsed.healthActivityType
+      ? { healthActivityType: parsed.healthActivityType }
+      : {}),
     exercises,
   };
 }

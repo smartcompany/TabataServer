@@ -18,6 +18,24 @@
 - sets: 해당 exercise 세트 수 (보통 1~5).
 - work와 relax가 모두 필요하면 번갈아 배치.
 - descriptionBlocks, instructionBlocks는 불필요하면 넣지 마세요. description/instruction 문자열만으로 충분.
+- **healthActivityType** (필수): 루틴 완료 시 건강 앱(Apple Health / Health Connect)에 저장할 운동 유형.
+  아래 **영문 id 중 하나만** 사용하세요. null/생략/"저장 안 함"은 쓰지 마세요. AI가 만든 운동 루틴은 결과에 맞는 유형으로 저장해야 합니다.
+
+### healthActivityType 허용 값
+| id | 언제 선택 |
+|---|---|
+| `high_intensity_interval_training` | 타바타·HIIT·서킷·짧은 work/relax 인터벌이 중심일 때 |
+| `functional_strength_training` | 맨몸·재활·기능성 근력·홈트(스쿼트·푸시업·코어 등) |
+| `traditional_strength_training` | 덤벨·바벨·웨이트·헬스장 근력 위주 |
+| `flexibility` | 스트레칭·요가·필라테스·유연성·가동성 위주 |
+| `other` | 위 분류에 잘 안 맞을 때만 |
+
+### healthActivityType 판단
+1. 요청/제목에 타바타·HIIT·인터벌이 있거나 work≈20초·relax≈10초 패턴이면 → `high_intensity_interval_training`
+2. 요가·스트레칭·유연·필라테스 위주이면 → `flexibility`
+3. 덤벨·바벨·웨이트·헬스장 근력 위주이면 → `traditional_strength_training`
+4. 맨몸·재활·어깨/무릎 기능성·일반 홈트이면 → `functional_strength_training`
+5. 애매하면 루틴 구성(인터벌 vs 근력 vs 스트레칭)으로 고르고, 그래도 애매하면 `functional_strength_training`
 
 ## phase 타이밍 (timingMode) — 매우 중요
 
@@ -70,3 +88,4 @@
 - **횟수로 하는 근력·홈트·재활 반복은 count를 기본**으로 쓰세요. duration은 유지·인터벌·휴식에 쓰세요.
 - 요청이 모호하면 3~6개 운동으로 구성된 무난한 루틴을 만드세요.
 - 사용자가 말한 종목, 재활, 훈련 목적에 맞추세요.
+- **healthActivityType은 루틴 내용에 맞게 반드시 설정**하세요. 앱이 이 값으로 건강 앱 저장 옵션을 켭니다.
