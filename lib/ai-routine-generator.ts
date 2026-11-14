@@ -18,6 +18,7 @@ import { isRetryableGeminiError } from '@/lib/gemini-errors';
 import {
   type DescriptionBlock,
 } from '@/lib/description-blocks';
+import { resolveHealthActivityType } from '@/lib/health-activity-type';
 import {
   parseRoutineProfile,
   type RoutineProfile,
@@ -233,21 +234,33 @@ function prepareAiRoutineForParse(raw: unknown): unknown {
     throw new Error('Model response missing exercises');
   }
 
-  return {
+  const preparedExercises = source.exercises.map((exercise, exerciseIndex) => {
+    if (!exercise || typeof exercise !== 'object') {
+      throw new Error('Invalid exercise entry in model response');
+    }
+    return sanitizeExercise(
+      exercise as Record<string, unknown>,
+      exerciseIndex,
+    );
+  });
+
+  const prepared = {
     ...rest,
     schemaVersion: 1,
     id: 'pending',
     title:
       String(source.title ?? 'AI Routine').trim() || 'AI Routine',
     description: String(source.description ?? ''),
-    exercises: source.exercises.map((exercise, exerciseIndex) => {
-      if (!exercise || typeof exercise !== 'object') {
-        throw new Error('Invalid exercise entry in model response');
-      }
-      return sanitizeExercise(
-        exercise as Record<string, unknown>,
-        exerciseIndex,
-      );
+    exercises: preparedExercises,
+  };
+
+  return {
+    ...prepared,
+    healthActivityType: resolveHealthActivityType({
+      ...source,
+      title: prepared.title,
+      description: prepared.description,
+      exercises: preparedExercises,
     }),
   };
 }

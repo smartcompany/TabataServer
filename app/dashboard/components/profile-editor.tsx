@@ -5,8 +5,18 @@ import {
   createPhase,
   type Exercise,
   type ExercisePhaseKind,
+  type HealthActivityType,
   type RoutineProfile,
 } from '@/lib/dashboard-profile-model';
+
+const HEALTH_ACTIVITY_OPTIONS: { value: '' | HealthActivityType; label: string }[] = [
+  { value: '', label: '건강 앱에 저장 안 함' },
+  { value: 'high_intensity_interval_training', label: 'HIIT (타바타·인터벌)' },
+  { value: 'functional_strength_training', label: '기능성 근력' },
+  { value: 'traditional_strength_training', label: '전통적 근력' },
+  { value: 'flexibility', label: '유연성' },
+  { value: 'other', label: '기타' },
+];
 
 type ProfileEditorProps = {
   profile: RoutineProfile;
@@ -183,6 +193,32 @@ export function ProfileEditor({ profile, isNew, onChange }: ProfileEditorProps) 
           onChange={(description) => update({ description })}
           multiline
         />
+        <div>
+          <label className={labelClass}>건강 앱 운동 유형</label>
+          <select
+            value={profile.healthActivityType ?? ''}
+            onChange={(event) => {
+              const value = event.target.value as '' | HealthActivityType;
+              if (value === '') {
+                const { healthActivityType: _removed, ...rest } = profile;
+                onChange(rest);
+                return;
+              }
+              update({ healthActivityType: value });
+            }}
+            className={inputClass}
+          >
+            {HEALTH_ACTIVITY_OPTIONS.map((option) => (
+              <option key={option.value || 'none'} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+          <p className="mt-1 text-xs text-zinc-500">
+            AI로 만든 루틴은 결과에 맞는 유형이 자동으로 들어갑니다. 앱에서 완료 시
+            건강 앱 저장에 사용됩니다.
+          </p>
+        </div>
       </section>
 
       <section className="space-y-4">
